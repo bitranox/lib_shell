@@ -188,9 +188,12 @@ def shlex_split_multi_platform(s_commandline: str, is_platform_windows: int = No
 
     from : https://stackoverflow.com/questions/33560364/python-windows-parsing-command-lines-with-shlex
 
-    >>> import lib_time
-    >>> import decorator_timeit
-    >>> decorator_timeit.TimeIt(repeat=100000)(shlex_split_multi_platform)('c:/test.exe /n /r /s=test')
+    # >>> import lib_time
+    # >>> import decorator_timeit
+    # >>> decorator_timeit.TimeIt(repeat=100000)(shlex_split_multi_platform)('c:/test.exe /n /r /s=test')
+    # ['c:/test.exe', '/n', '/r', '/s=test']
+
+    >>> shlex_split_multi_platform('c:/test.exe /n /r /s=test')
     ['c:/test.exe', '/n', '/r', '/s=test']
 
 
