@@ -59,4 +59,4 @@ setup(
     install_requires=['pytest', 'typing'],
     classifiers=CLASSIFIERS,
     setup_requires=['pytest-runner'],
-    tests_require=['pytest'])
+    tests_require=['pytest', 'lib_detect_encoding', 'lib_list', 'lib_log_utils', 'lib_parameter', 'lib_platform', 'lib_regexp'])
