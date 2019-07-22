@@ -1,0 +1,7 @@
+pytest                                                                  # see : https://github.com/pytest-dev/pytest
+typing                                                                  # see : https://pypi.org/project/typing/
+https://github.com/bitranox/lib_detect_encoding/archive/master.zip      # see : https://github.com/bitranox/lib_detect_encoding
+https://github.com/bitranox/lib_list/archive/master.zip                 # see : https://github.com/bitranox/lib_list
+https://github.com/bitranox/lib_log_utils/archive/master.zip            # see : https://github.com/bitranox/lib_log_utils
+https://github.com/bitranox/lib_parameter/archive/master.zip            # see : https://github.com/bitranox/lib_parameter
+https://github.com/bitranox/lib_regexp/archive/master.zip               # see : https://github.com/bitranox/lib_regexp
