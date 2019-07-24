@@ -14,7 +14,8 @@ import lib_parameter
 import lib_platform
 import lib_regexp
 
-locale.setlocale(locale.LC_ALL, '')     # This sets the locale for all categories to the user’s default setting (typically specified in the LANG environment variable).
+# This sets the locale for all categories to the user’s default setting (typically specified in the LANG environment variable).
+locale.setlocale(locale.LC_ALL, '')
 
 _re_cmd_lex_win = r'''"((?:""|\\["\\]|[^"])*)"?()|(\\\\(?=\\*")|\\")|(&&?|\|\|?|\d?>|[<])|([^\s"&|<>]+)|(\s+)|(.)'''
 _re_cmd_lex_precompiled_win = lib_regexp.ClassRegexExecute(s_regexp=_re_cmd_lex_win)
@@ -120,7 +121,8 @@ def run_shell_ls_command(ls_command: List[str], shell: bool = False, communicate
             stdout, stderr = pass_stdout_stderr_to_caller(my_process, encoding)
             pass
         else:
-            stdout, stderr = my_process.communicate()  # Send data to stdin. Read data from stdout and stderr, until end-of-file is reached. Wait for process to terminate.
+            # Send data to stdin. Read data from stdout and stderr, until end-of-file is reached. Wait for process to terminate.
+            stdout, stderr = my_process.communicate()
 
         encoding = lib_detect_encoding.detect_encoding(stdout+stderr)
         stdout = stdout.decode(encoding)
@@ -307,7 +309,9 @@ def get_pipes(start_new_session: bool) -> Tuple[int, int, int]:
     return subprocess_stdin, subprocess_stdout, subprocess_stderr
 
 
-def set_log_settings_returncode_not_zero_to_level(level: int, log_settings: RunShellCommandLogSettings = RunShellCommandLogSettings()) -> RunShellCommandLogSettings:
+def set_log_settings_returncode_not_zero_to_level(level: int,
+                                                  log_settings: RunShellCommandLogSettings = RunShellCommandLogSettings()) -> RunShellCommandLogSettings:
+
     log_settings.log_level_command_on_error = level
     log_settings.log_level_returncode_on_error = level
     log_settings.log_level_stdout_on_error = level
@@ -315,7 +319,9 @@ def set_log_settings_returncode_not_zero_to_level(level: int, log_settings: RunS
     return log_settings
 
 
-def set_log_settings_returncode_zero_to_level(level: int, log_settings: RunShellCommandLogSettings = RunShellCommandLogSettings()) -> RunShellCommandLogSettings:
+def set_log_settings_returncode_zero_to_level(level: int,
+                                              log_settings: RunShellCommandLogSettings = RunShellCommandLogSettings()) -> RunShellCommandLogSettings:
+
     log_settings.log_level_command_on_error = level
     log_settings.log_level_returncode_on_error = level
     log_settings.log_level_stdout_on_error = level
@@ -323,7 +329,9 @@ def set_log_settings_returncode_zero_to_level(level: int, log_settings: RunShell
     return log_settings
 
 
-def set_log_settings_to_level(level: int, log_settings: RunShellCommandLogSettings = RunShellCommandLogSettings()) -> RunShellCommandLogSettings:
+def set_log_settings_to_level(level: int,
+                              log_settings: RunShellCommandLogSettings = RunShellCommandLogSettings()) -> RunShellCommandLogSettings:
+
     log_settings = set_log_settings_returncode_not_zero_to_level(level=level, log_settings=log_settings)
     log_settings = set_log_settings_returncode_zero_to_level(level=level, log_settings=log_settings)
     return log_settings
