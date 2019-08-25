@@ -92,8 +92,8 @@ def run_shell_ls_command(ls_command: List[str], shell: bool = False, communicate
     >>> response = run_shell_ls_command(['ls', '-unknown'], raise_on_returncode_not_zero=False, pass_std_out_line_by_line=True)
     >>> response.stdout
     ''
-    >>> response.stderr
-    'ls: ungültige Zeilenbreite: »n“\\n'
+    >>> response.stderr  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+    'ls: ...: »n“\\n'
 
     """
     ls_command = [str(s_command) for s_command in ls_command]
