@@ -4,7 +4,7 @@ import logging
 import os
 import subprocess
 import sys
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 # OWN
 import lib_detect_encoding
@@ -25,14 +25,14 @@ _re_cmd_lex_precompiled_posix = lib_regexp.ClassRegexExecute(s_regexp=_re_cmd_le
 
 
 class ShellCommandResponse(object):
-    def __init__(self):
+    def __init__(self) -> None:
         self.returncode = 0
         self.stdout = ''
         self.stderr = ''
 
 
 class RunShellCommandLogSettings(object):
-    def __init__(self):
+    def __init__(self) -> None:
         self.log_level_command: int = logging.NOTSET
         self.log_level_command_on_error: int = logging.WARNING
         self.log_level_stdout: int = logging.NOTSET
@@ -45,7 +45,7 @@ class RunShellCommandLogSettings(object):
 
 def run_shell_command(command: str, shell: bool = False, communicate: bool = True,
                       wait_finish: bool = True, raise_on_returncode_not_zero: bool = True,
-                      log_settings: RunShellCommandLogSettings = None,
+                      log_settings: Optional[RunShellCommandLogSettings] = None,
                       pass_std_out_line_by_line: bool = False, start_new_session: bool = False) -> ShellCommandResponse:
     """
     >>> response = run_shell_command('echo test') # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
@@ -70,7 +70,7 @@ def run_shell_command(command: str, shell: bool = False, communicate: bool = Tru
 
 def run_shell_ls_command(ls_command: List[str], shell: bool = False, communicate: bool = True,
                          wait_finish: bool = True, raise_on_returncode_not_zero: bool = True,
-                         log_settings: RunShellCommandLogSettings = None, pass_std_out_line_by_line: bool = False,
+                         log_settings: Optional[RunShellCommandLogSettings] = None, pass_std_out_line_by_line: bool = False,
                          start_new_session: bool = False) -> ShellCommandResponse:
     """
 
@@ -97,7 +97,7 @@ def run_shell_ls_command(ls_command: List[str], shell: bool = False, communicate
 
     """
     ls_command = [str(s_command) for s_command in ls_command]
-    log_settings = lib_parameter.get_default_if_none(log_settings, default=RunShellCommandLogSettings())
+    log_settings_struct = lib_parameter.get_default_if_none(log_settings, default=RunShellCommandLogSettings())
     my_env = os.environ.copy()
     my_env['PYTHONIOENCODING'] = 'utf-8'
     my_env['PYTHONLEGACYWINDOWSIOENCODING'] = 'utf-8'
@@ -124,14 +124,14 @@ def run_shell_ls_command(ls_command: List[str], shell: bool = False, communicate
             # Send data to stdin. Read data from stdout and stderr, until end-of-file is reached. Wait for process to terminate.
             stdout, stderr = my_process.communicate()
 
-        encoding = lib_detect_encoding.detect_encoding(stdout+stderr)
-        stdout = stdout.decode(encoding)
-        stderr = stderr.decode(encoding)
+        encoding = lib_detect_encoding.detect_encoding(stdout + stderr)
+        stdout_str = stdout.decode(encoding)
+        stderr_str = stderr.decode(encoding)
         returncode = my_process.returncode
 
     else:
-        stdout = None
-        stderr = None
+        stdout_str = ''
+        stderr_str = ''
         if wait_finish:
             my_process.wait()
             returncode = my_process.returncode
@@ -139,19 +139,19 @@ def run_shell_ls_command(ls_command: List[str], shell: bool = False, communicate
             returncode = 0
 
     str_command = ' '.join(ls_command)
-    _log_results(str_command, stdout, stderr, returncode, wait_finish, log_settings)
+    _log_results(str_command, stdout_str, stderr_str, returncode, wait_finish, log_settings_struct)
 
     if raise_on_returncode_not_zero and returncode:
-        raise subprocess.CalledProcessError(returncode=returncode, cmd=str_command, output=stdout, stderr=stderr)
+        raise subprocess.CalledProcessError(returncode=returncode, cmd=str_command, output=stdout_str, stderr=stderr_str)
 
     command_response = ShellCommandResponse()
-    command_response.stdout = stdout
-    command_response.stderr = stderr
+    command_response.stdout = stdout_str
+    command_response.stderr = stderr_str
     command_response.returncode = returncode
     return command_response
 
 
-def pass_stdout_stderr_to_caller(process, encoding):
+def pass_stdout_stderr_to_caller(process: subprocess.Popen, encoding: str) -> Tuple[bytes, bytes]:
     l_stdout = list()
     l_stderr = list()
     stdout_to_read = True
@@ -183,7 +183,7 @@ def pass_stdout_stderr_to_caller(process, encoding):
     return stdout_complete, stderr_complete
 
 
-def shlex_split_multi_platform(s_commandline: str, is_platform_windows: int = None) -> [str]:
+def shlex_split_multi_platform(s_commandline: str, is_platform_windows: Optional[bool] = None) -> List[str]:
     """
     its ~10x faster than shlex, which does single-char stepping and streaming;
     and also respects pipe-related characters (unlike shlex).
@@ -238,7 +238,7 @@ def shlex_split_multi_platform(s_commandline: str, is_platform_windows: int = No
     return args
 
 
-def _log_results(s_command: str, stdout: str, stderr: str, returncode: int, wait_finish: bool, log_settings: RunShellCommandLogSettings):
+def _log_results(s_command: str, stdout: str, stderr: str, returncode: int, wait_finish: bool, log_settings: RunShellCommandLogSettings) -> None:
     logger = logging.getLogger()
     if returncode:
         log_level_command = log_settings.log_level_command_on_error
@@ -278,12 +278,12 @@ def _delete_empty_lines(text: str) -> str:
     return text_result
 
 
-def get_startup_info(start_new_session: bool):    # type is subprocess.STARTUPINFO - only available on windows !
+def get_startup_info(start_new_session: bool):    # type: ignore  # is subprocess.STARTUPINFO - only available on windows !
     if lib_platform.is_platform_windows:
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW  # HIDE CONSOLE
+        startupinfo = subprocess.STARTUPINFO()                  # type: ignore
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW  # type: ignore    # HIDE CONSOLE
         if start_new_session:
-            startupinfo.dwFlags |= subprocess.CREATE_NEW_PROCESS_GROUP  # ich konnte keinen Unterschied feststellen ...
+            startupinfo.dwFlags |= subprocess.CREATE_NEW_PROCESS_GROUP  # type: ignore   # I could not see any difference ....
             # http://stackoverflow.com/questions/14797236/python-howto-launch-a-full-process-not-a-child-process-and-retrieve-the-pid
             # https://stackoverflow.com/questions/89228/calling-an-external-command-in-python#2251026
             # create_new_console = 0x00000010 # TODO - noch nicht probiert !
@@ -295,7 +295,7 @@ def get_startup_info(start_new_session: bool):    # type is subprocess.STARTUPIN
     return startupinfo
 
 
-def get_pipes(start_new_session: bool) -> Tuple[int, int, int]:
+def get_pipes(start_new_session: bool) -> Tuple[Optional[int], Optional[int], Optional[int]]:
 
     if start_new_session:
         subprocess_stdin = None
