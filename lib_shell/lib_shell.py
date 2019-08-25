@@ -288,7 +288,7 @@ def get_startup_info(start_new_session: bool):    # type: ignore  # is subproces
             detached_process = 0x00000008
             startupinfo.dwFlags |= detached_process
     else:
-        startupinfo = None
+        startupinfo = None  # type: ignore
 
     return startupinfo
 
