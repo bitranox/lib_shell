@@ -79,9 +79,8 @@ def run_shell_ls_command(ls_command: List[str], shell: bool = False, communicate
     'test\\n'
 
     >>> response = run_shell_ls_command(['echo', 'test'], pass_std_out_line_by_line=True)
-    test
-    >>> response.stdout
-    'test\\n'
+    >>> assert 'test' in response.stdout
+
 
     >>> response = run_shell_ls_command(['ls', '-unknown'], raise_on_returncode_not_zero=False, pass_std_out_line_by_line=True)
     >>> response.stdout
