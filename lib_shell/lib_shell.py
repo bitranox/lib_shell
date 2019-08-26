@@ -81,16 +81,6 @@ def run_shell_ls_command(ls_command: List[str], shell: bool = False, communicate
     te...
     >>> assert 'test' in response.stdout
 
-    >>> response = run_shell_ls_command(['ls', '-unknown'], raise_on_returncode_not_zero=False, pass_std_out_line_by_line=True)
-    >>> response.stdout
-    ''
-    >>> assert response.stderr != ''
-
-    >>> response = run_shell_ls_command(['ls', '-unknown'], raise_on_returncode_not_zero=False, pass_std_out_line_by_line=True)
-    >>> response.stdout
-    ''
-    >>> assert response.stderr != ''
-
     """
     ls_command = [str(s_command) for s_command in ls_command]
     log_settings_struct = lib_parameter.get_default_if_none(log_settings, default=RunShellCommandLogSettings())
