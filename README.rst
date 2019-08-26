@@ -109,15 +109,13 @@ Requirements
 ------------
 following modules will be automatically installed :
 
-.. code-block:: shell
+.. code-block:: bash
 
-    pytest                                                                  # see : https://github.com/pytest-dev/pytest
-    typing                                                                  # see : https://pypi.org/project/typing/
-    https://github.com/bitranox/lib_detect_encoding/archive/master.zip      # see : https://github.com/bitranox/lib_detect_encoding
-    https://github.com/bitranox/lib_list/archive/master.zip                 # see : https://github.com/bitranox/lib_list
-    https://github.com/bitranox/lib_log_utils/archive/master.zip            # see : https://github.com/bitranox/lib_log_utils
-    https://github.com/bitranox/lib_parameter/archive/master.zip            # see : https://github.com/bitranox/lib_parameter
-    https://github.com/bitranox/lib_regexp/archive/master.zip               # see : https://github.com/bitranox/lib_regexp
+    git+https://github.com/bitranox/lib_detect_encoding.git
+    git+https://github.com/bitranox/lib_list.git
+    git+https://github.com/bitranox/lib_log_utils.git
+    git+https://github.com/bitranox/lib_parameter.git
+    git+https://github.com/bitranox/lib_regexp.git
 
 Acknowledgements
 ----------------
