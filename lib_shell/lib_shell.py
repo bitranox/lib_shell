@@ -33,14 +33,14 @@ class ShellCommandResponse(object):
 
 class RunShellCommandLogSettings(object):
     def __init__(self) -> None:
-        self.log_level_command: int = logging.NOTSET
-        self.log_level_command_on_error: int = logging.WARNING
-        self.log_level_stdout: int = logging.NOTSET
-        self.log_level_stdout_on_error: int = logging.WARNING
-        self.log_level_stderr: int = logging.NOTSET
-        self.log_level_stderr_on_error: int = logging.WARNING
-        self.log_level_returncode: int = logging.NOTSET
-        self.log_level_returncode_on_error: int = logging.WARNING
+        self.log_level_command = logging.NOTSET                 # type: int
+        self.log_level_command_on_error = logging.WARNING       # type: int
+        self.log_level_stdout = logging.NOTSET                  # type: int
+        self.log_level_stdout_on_error = logging.WARNING        # type: int
+        self.log_level_stderr = logging.NOTSET                  # type: int
+        self.log_level_stderr_on_error = logging.WARNING        # type: int
+        self.log_level_returncode = logging.NOTSET              # type: int
+        self.log_level_returncode_on_error = logging.WARNING    # type: int
 
 
 def run_shell_command(command: str, shell: bool = False, communicate: bool = True,
