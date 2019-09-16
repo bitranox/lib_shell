@@ -2,13 +2,17 @@
 import locale
 import logging
 import os
-import queue
 import subprocess
-import sys
-import threading
-import time
-from typing import Any, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
+# PROJ
+
+try:                                            # type: ignore # pragma: no cover
+    # imports for local pytest
+    from . import pass_pipes                    # type: ignore # pragma: no cover
+except (ImportError, ModuleNotFoundError):      # type: ignore # pragma: no cover
+    # imports for doctest local
+    import pass_pipes                           # type: ignore # pragma: no cover
 
 # OWN
 import lib_detect_encoding
@@ -17,6 +21,7 @@ import lib_log_utils
 import lib_parameter
 import lib_platform
 import lib_regexp
+
 
 # This sets the locale for all categories to the user’s default setting (typically specified in the LANG environment variable).
 locale.setlocale(locale.LC_ALL, '')
@@ -85,7 +90,8 @@ def run_shell_ls_command(ls_command: List[str], shell: bool = False, communicate
     te...
     >>> assert 'test' in response.stdout
 
-    >>> response = run_shell_ls_command(['ls', '--unknown'], pass_std_out_line_by_line=True, raise_on_returncode_not_zero=False)  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+    >>> response = run_shell_ls_command(['ls', '--unknown'],
+    ...     pass_std_out_line_by_line=True, raise_on_returncode_not_zero=False)  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
     >>> assert '--unknown' in response.stderr
 
 
@@ -113,7 +119,7 @@ def run_shell_ls_command(ls_command: List[str], shell: bool = False, communicate
 
         if pass_std_out_line_by_line:
             # Read data from stdout and stderr and passes it to the caller, until end-of-file is reached. Wait for process to terminate.
-            stdout, stderr = pass_stdout_stderr_to_caller(my_process, encoding)
+            stdout, stderr = pass_pipes.pass_stdout_stderr_to_caller(my_process, encoding)
         else:
             # Send data to stdin. Read data from stdout and stderr, until end-of-file is reached. Wait for process to terminate.
             stdout, stderr = my_process.communicate()
@@ -143,95 +149,6 @@ def run_shell_ls_command(ls_command: List[str], shell: bool = False, communicate
     command_response.stderr = stderr_str
     command_response.returncode = returncode
     return command_response
-
-
-# possible memory leak - processes might (and will) sometimes not close - but will close finally when program ends
-# we might end up with many many open threads
-# it works, but afraid to use it on long running programs - it might explode
-# select is also not an option in windows
-def pass_stdout_stderr_to_caller(process: subprocess.Popen, encoding: str) -> Tuple[bytes, bytes]:
-    l_stdout = list()
-    l_stderr = list()
-    queue_stdout = queue.Queue()
-    queue_stderr = queue.Queue()
-    thread_stdout = threading.Thread(target=enque_output, args=(process.stdout, queue_stdout))
-    thread_stderr = threading.Thread(target=enque_output, args=(process.stderr, queue_stderr))
-    thread_stdout.daemon = True
-    thread_stderr.daemon = True
-    thread_stdout.start()
-    thread_stderr.start()
-
-    while True:
-        poll_queue(queue_stdout, sys.stdout, l_stdout, encoding)
-        poll_queue(queue_stderr, sys.stderr, l_stderr, encoding)
-        if process.poll() is not None:
-            break
-
-    time.sleep(0.1)
-    poll_queue(queue_stdout, sys.stdout, l_stdout, encoding)
-    poll_queue(queue_stderr, sys.stderr, l_stderr, encoding)
-    stdout_complete = b''.join(l_stdout)
-    stderr_complete = b''.join(l_stderr)
-    return stdout_complete, stderr_complete
-
-
-def enque_output(out: Any, message_queue: queue.Queue):
-    while True:
-        msg = out.readline()
-        if msg != b'':
-            message_queue.put(msg)
-        else:
-            break
-    out.close()
-
-
-def poll_queue(msg_queue: queue.Queue, target_pipe: Any, msg_list: List, encoding: str) -> None:
-    try:
-        while True:
-            msg_line = msg_queue.get_nowait()
-            msg_list.append(msg_line)
-            msg_line_decoded = msg_line.decode(encoding)
-            target_pipe.write(msg_line_decoded)
-            if hasattr(target_pipe, 'flush'):
-                target_pipe.flush()
-    except queue.Empty:
-        pass
-
-
-# this sometimes does not work under WINE or Windows, it will stuck at STDERR, because
-# no output on STDERR - on linux no problems so far
-def pass_stdout_stderr_to_caller_old(process: subprocess.Popen, encoding: str) -> Tuple[bytes, bytes]:
-    l_stdout = list()
-    l_stderr = list()
-    stdout_to_read = True
-    stderr_to_read = True
-
-    while stdout_to_read or stderr_to_read:
-        if stdout_to_read and process.poll() is None:
-            stdout_line = process.stdout.readline()     # This blocks until it receives a newline
-            if stdout_line == b'':
-                stdout_to_read = False
-            else:
-                l_stdout.append(stdout_line)
-                stdout_line_decoded = stdout_line.decode(encoding)
-                sys.stdout.write(stdout_line_decoded)
-                if hasattr(sys.stdout, 'flush'):
-                    sys.stdout.flush()
-
-        if stderr_to_read and process.poll() is None:
-            stderr_line = process.stderr.readline()     # This blocks until it receives a newline
-            if stderr_line == b'':
-                stderr_to_read = False
-            else:
-                l_stderr.append(stderr_line)
-                stderr_line_decoded = stderr_line.decode(encoding)
-                sys.stderr.write(stderr_line_decoded)
-                if hasattr(sys.stderr, 'flush'):
-                    sys.stderr.flush()
-
-    stdout_complete = b''.join(l_stdout)
-    stderr_complete = b''.join(l_stderr)
-    return stdout_complete, stderr_complete
 
 
 def shlex_split_multi_platform(s_commandline: str, is_platform_windows: Optional[bool] = None) -> List[str]:
