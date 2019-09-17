@@ -107,7 +107,10 @@ def run_shell_ls_command(ls_command: List[str], shell: bool = False, communicate
     ...     response = run_shell_ls_command(['ls', '--unknown'],
     ...                pass_stdout_stderr_to_sys=True,
     ...                raise_on_returncode_not_zero=False)  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
-    ...     assert '--unknown' in response.stderr
+    ...     if lib_platform.is_platform_darwin:
+    ...         assert 'ls: illegal option' in response.stderr
+    ...     else:
+    ...         assert '--unknown' in response.stderr
     ... elif lib_platform.is_platform_windows:
     ...     response = run_shell_ls_command(['dir', '/unknown'],
     ...                shell=True,
