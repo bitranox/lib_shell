@@ -87,7 +87,7 @@ def poll_queue(msg_queue: ByteQueue, target_pipe: Any, msg_list: List[bytes], en
             msg_list.append(msg_line)
             msg_line_decoded = msg_line.decode(encoding)
             target_pipe.write(msg_line_decoded)
-            if hasattr(target_pipe, 'flush'):
+            if hasattr(target_pipe, 'flush'):   # pragma: no cover
                 target_pipe.flush()
     except queue.Empty:
         pass
