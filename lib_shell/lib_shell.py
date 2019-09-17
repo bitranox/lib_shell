@@ -199,6 +199,8 @@ def shlex_split_multi_platform(s_commandline: str, is_platform_windows: Optional
 
     from : https://stackoverflow.com/questions/33560364/python-windows-parsing-command-lines-with-shlex
 
+    >>> shlex_split_multi_platform('', is_platform_windows=True)     # acc = None
+    []
     >>> shlex_split_multi_platform('c:/test.exe /n /r /s=test | test2.exe > test3.txt', is_platform_windows=True)
     ['c:/test.exe', '/n', '/r', '/s=test', '|', 'test2.exe', '>', 'test3.txt']
     >>> shlex_split_multi_platform('c:/test.exe /n /r /s=test | test2.exe > test3.txt', is_platform_windows=False)
