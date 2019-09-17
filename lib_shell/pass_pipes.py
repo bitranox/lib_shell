@@ -5,10 +5,10 @@ import subprocess
 import sys
 import threading
 import time
-from typing import Any, List, Tuple, TYPE_CHECKING
+from typing import Any, List, Tuple, TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
-    ByteQueue = queue.Queue[bytes]
+    ByteQueue = queue.Queue[bytes]  # pragma: no cover
 else:
     ByteQueue = queue.Queue
 
@@ -47,14 +47,22 @@ def pass_stdout_stderr_to_sys(process: subprocess.Popen, encoding: str) -> Tuple
     stderr_complete = b''.join(l_stderr)
 
     if thread_stdout.is_alive():
-        report_thread_not_closed(process=process, pipe_name='stdout')
+        # this should never happen
+        report_thread_not_closed(process=process, pipe_name='stdout')   # pragma: no cover
     if thread_stderr.is_alive():
-        report_thread_not_closed(process=process, pipe_name='stderr')
+        # this should never happen
+        report_thread_not_closed(process=process, pipe_name='stderr')   # pragma: no cover
 
     return stdout_complete, stderr_complete
 
 
-def report_thread_not_closed(process: subprocess.Popen, pipe_name: str) -> None:
+def report_thread_not_closed(process: Union[subprocess.Popen, subprocess.CompletedProcess], pipe_name: str) -> None:
+    """
+    >>> process=subprocess.CompletedProcess(args=['a', 'b', 'c'], returncode=0)
+    >>> report_thread_not_closed(process=process, pipe_name='stdout')
+
+    """
+
     cmd_args = [str(cmd_arg) for cmd_arg in process.args]   # type: List[str]
     command = ' '.join(cmd_args)
     error_msg = 'stalled I/O thread for "{pipe_name}" on command "{command}"'.format(pipe_name=pipe_name, command=command)
@@ -83,39 +91,3 @@ def poll_queue(msg_queue: ByteQueue, target_pipe: Any, msg_list: List[bytes], en
                 target_pipe.flush()
     except queue.Empty:
         pass
-
-
-# this sometimes does not work under WINE or Windows, it will stuck at STDERR, because
-# no output on STDERR - on linux no problems so far
-def pass_stdout_stderr_to_caller_old(process: subprocess.Popen, encoding: str) -> Tuple[bytes, bytes]:
-    l_stdout = list()
-    l_stderr = list()
-    stdout_to_read = True
-    stderr_to_read = True
-
-    while stdout_to_read or stderr_to_read:
-        if stdout_to_read and process.poll() is None:
-            stdout_line = process.stdout.readline()     # This blocks until it receives a newline
-            if stdout_line == b'':
-                stdout_to_read = False
-            else:
-                l_stdout.append(stdout_line)
-                stdout_line_decoded = stdout_line.decode(encoding)
-                sys.stdout.write(stdout_line_decoded)
-                if hasattr(sys.stdout, 'flush'):
-                    sys.stdout.flush()
-
-        if stderr_to_read and process.poll() is None:
-            stderr_line = process.stderr.readline()     # This blocks until it receives a newline
-            if stderr_line == b'':
-                stderr_to_read = False
-            else:
-                l_stderr.append(stderr_line)
-                stderr_line_decoded = stderr_line.decode(encoding)
-                sys.stderr.write(stderr_line_decoded)
-                if hasattr(sys.stderr, 'flush'):
-                    sys.stderr.flush()
-
-    stdout_complete = b''.join(l_stdout)
-    stderr_complete = b''.join(l_stderr)
-    return stdout_complete, stderr_complete
