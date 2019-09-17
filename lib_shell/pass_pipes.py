@@ -1,4 +1,5 @@
 # STDLIB
+import logging
 import queue
 import subprocess
 import sys
@@ -10,6 +11,9 @@ if TYPE_CHECKING:
     ByteQueue = queue.Queue[bytes]
 else:
     ByteQueue = queue.Queue
+
+
+logger = logging.getLogger()
 
 
 # possible memory leak - processes might (and will) sometimes not close - but will close finally when program ends
@@ -41,6 +45,11 @@ def pass_stdout_stderr_to_caller(process: subprocess.Popen, encoding: str) -> Tu
     poll_queue(queue_stderr, sys.stderr, l_stderr, encoding)
     stdout_complete = b''.join(l_stdout)
     stderr_complete = b''.join(l_stderr)
+    if thread_stdout.is_alive():
+        logger.error('thread for stdout still alive !')
+    if thread_stderr.is_alive():
+        logger.error('thread for stderr still alive !')
+
     return stdout_complete, stderr_complete
 
 

@@ -83,6 +83,9 @@ def run_shell_ls_command(ls_command: List[str], shell: bool = False, communicate
                          start_new_session: bool = False) -> ShellCommandResponse:
     """
 
+    >>> response = run_shell_ls_command(['python', '-m', 'pip', 'install', 'wxpython', '--upgrade', '--user'], pass_std_out_line_by_line=True)
+
+
     >>> response = run_shell_ls_command(['echo', 'test'])
     >>> assert 'test' in response.stdout
 
