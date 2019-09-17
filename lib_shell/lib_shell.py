@@ -53,10 +53,14 @@ class RunShellCommandLogSettings(object):
 
 def run_shell_command(command: str, shell: bool = False, communicate: bool = True,
                       wait_finish: bool = True, raise_on_returncode_not_zero: bool = True,
-                      log_settings: RunShellCommandLogSettings = None,
+                      log_settings: Optional[RunShellCommandLogSettings] = None,
                       pass_stdout_stderr_to_sys: bool = False, start_new_session: bool = False) -> ShellCommandResponse:
     """
-    >>> response = run_shell_command('echo test', shell=True) # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+    >>> if lib_platform.is_platform_posix:
+    ...     use_shell=False
+    ... else:
+    ...     use_shell=True
+    >>> response = run_shell_command('echo test', shell=use_shell)   # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
     >>> assert 'test' in response.stdout
 
     """
@@ -77,18 +81,23 @@ def run_shell_command(command: str, shell: bool = False, communicate: bool = Tru
 
 def run_shell_ls_command(ls_command: List[str], shell: bool = False, communicate: bool = True,
                          wait_finish: bool = True, raise_on_returncode_not_zero: bool = True,
-                         log_settings: RunShellCommandLogSettings = None, pass_stdout_stderr_to_sys: bool = False,
+                         log_settings: Optional[RunShellCommandLogSettings] = None, pass_stdout_stderr_to_sys: bool = False,
                          start_new_session: bool = False) -> ShellCommandResponse:
     """
     >>> import unittest
 
+    >>> if lib_platform.is_platform_posix:
+    ...     use_shell=False
+    ... else:
+    ...     use_shell=True
+
     >>> # test std operation
-    >>> response = run_shell_ls_command(['echo', 'test'], shell=True)
+    >>> response = run_shell_ls_command(['echo', 'test'], shell=use_shell)
     >>> assert 'test' in response.stdout
 
     >>> # test pass stdout to sys
     >>> response = run_shell_ls_command(['echo', 'test'],
-    ...                                 shell=True,
+    ...                                 shell=use_shell,
     ...                                 pass_stdout_stderr_to_sys=True)  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
     te...
     >>> assert 'test' in response.stdout
@@ -110,7 +119,7 @@ def run_shell_ls_command(ls_command: List[str], shell: bool = False, communicate
     >>> # test pass stderr to sys - raising Exception
     >>> if lib_platform.is_platform_posix:
     ...     unittest.TestCase().assertRaises(subprocess.CalledProcessError,
-    ...         run_shell_ls_command, ['ls', '--unknown'], shell=True, pass_stdout_stderr_to_sys=True)
+    ...         run_shell_ls_command, ['ls', '--unknown'], pass_stdout_stderr_to_sys=True)
 
     >>> if lib_platform.is_platform_windows:
     ...     unittest.TestCase().assertRaises(subprocess.CalledProcessError,
@@ -118,11 +127,11 @@ def run_shell_ls_command(ls_command: List[str], shell: bool = False, communicate
 
 
     >>> # test std operation without communication
-    >>> response = run_shell_ls_command(['echo', 'test'], shell=True, communicate=False)
+    >>> response = run_shell_ls_command(['echo', 'test'], shell=use_shell, communicate=False)
     >>> assert response.returncode == 0
 
     >>> # test std operation without communication, no_wait
-    >>> response = run_shell_ls_command(['echo', 'test'], shell=True, communicate=False, wait_finish=False)
+    >>> response = run_shell_ls_command(['echo', 'test'], shell=use_shell, communicate=False, wait_finish=False)
     >>> assert response.returncode == 0
 
     """
@@ -180,7 +189,7 @@ def run_shell_ls_command(ls_command: List[str], shell: bool = False, communicate
     return command_response
 
 
-def shlex_split_multi_platform(s_commandline: str, is_platform_windows: bool = None) -> List[str]:
+def shlex_split_multi_platform(s_commandline: str, is_platform_windows: Optional[bool] = None) -> List[str]:
     """
     its ~10x faster than shlex, which does single-char stepping and streaming;
     and also respects pipe-related characters (unlike shlex).
@@ -243,13 +252,20 @@ def shlex_split_multi_platform(s_commandline: str, is_platform_windows: bool = N
 def _log_results(s_command: str, stdout: str, stderr: str, returncode: int, wait_finish: bool, log_settings: RunShellCommandLogSettings) -> None:
     """
     >>> log_settings = set_log_settings_to_level(level=logging.WARNING)
+
+    >>> if lib_platform.is_platform_posix:
+    ...     use_shell=False
+    ... else:
+    ...     use_shell=True
+
+
     >>> # test std operation
     >>> import lib_doctest_pycharm
-    >>> response = run_shell_ls_command(['echo', 'test'], shell=True, log_settings=log_settings)
+    >>> response = run_shell_ls_command(['echo', 'test'], shell=use_shell, log_settings=log_settings)
     >>> assert 'test' in response.stdout
 
     >>> # test std operation without communication, no_wait
-    >>> response = run_shell_ls_command(['echo', 'test'], shell=True, log_settings=log_settings,
+    >>> response = run_shell_ls_command(['echo', 'test'], shell=use_shell, log_settings=log_settings,
     ...                                 communicate=False, wait_finish=False)
     >>> assert response.returncode == 0
 
