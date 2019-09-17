@@ -5,15 +5,6 @@ import os
 import subprocess
 from typing import List, Optional, Tuple
 
-# PROJ
-
-try:                                            # type: ignore # pragma: no cover
-    # imports for local pytest
-    from . import pass_pipes                    # type: ignore # pragma: no cover
-except (ImportError, ModuleNotFoundError):      # type: ignore # pragma: no cover
-    # imports for doctest local
-    import pass_pipes                           # type: ignore # pragma: no cover
-
 # OWN
 import lib_detect_encoding
 import lib_list
@@ -21,6 +12,14 @@ import lib_log_utils
 import lib_parameter
 import lib_platform
 import lib_regexp
+
+# PROJ
+try:                                            # type: ignore # pragma: no cover
+    # imports for local pytest
+    from . import pass_pipes                    # type: ignore # pragma: no cover
+except (ImportError, ModuleNotFoundError):      # type: ignore # pragma: no cover
+    # imports for doctest local
+    import pass_pipes                           # type: ignore # pragma: no cover
 
 
 # This sets the locale for all categories to the user’s default setting (typically specified in the LANG environment variable).
@@ -54,12 +53,11 @@ class RunShellCommandLogSettings(object):
 
 def run_shell_command(command: str, shell: bool = False, communicate: bool = True,
                       wait_finish: bool = True, raise_on_returncode_not_zero: bool = True,
-                      log_settings: Optional[RunShellCommandLogSettings] = None,
-                      pass_std_out_line_by_line: bool = False, start_new_session: bool = False) -> ShellCommandResponse:
+                      log_settings: RunShellCommandLogSettings = None,
+                      pass_stdout_stderr_to_sys: bool = False, start_new_session: bool = False) -> ShellCommandResponse:
     """
-    >>> response = run_shell_command('echo test') # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
-    >>> response.stdout
-    'test\\n'
+    >>> response = run_shell_command('echo test', shell=True) # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+    >>> assert 'test' in response.stdout
 
     """
     log_settings = lib_parameter.get_default_if_none(log_settings, default=RunShellCommandLogSettings())
@@ -72,32 +70,60 @@ def run_shell_command(command: str, shell: bool = False, communicate: bool = Tru
                                             wait_finish=wait_finish,
                                             raise_on_returncode_not_zero=raise_on_returncode_not_zero,
                                             log_settings=log_settings,
-                                            pass_std_out_line_by_line=pass_std_out_line_by_line,
+                                            pass_stdout_stderr_to_sys=pass_stdout_stderr_to_sys,
                                             start_new_session=start_new_session)
     return command_response
 
 
 def run_shell_ls_command(ls_command: List[str], shell: bool = False, communicate: bool = True,
                          wait_finish: bool = True, raise_on_returncode_not_zero: bool = True,
-                         log_settings: Optional[RunShellCommandLogSettings] = None, pass_std_out_line_by_line: bool = False,
+                         log_settings: RunShellCommandLogSettings = None, pass_stdout_stderr_to_sys: bool = False,
                          start_new_session: bool = False) -> ShellCommandResponse:
     """
+    >>> import unittest
 
-    >>> response = run_shell_ls_command(['python', '-m', 'pip', 'install', 'wxpython', '--upgrade', '--user'], pass_std_out_line_by_line=True)
-
-
-    >>> response = run_shell_ls_command(['echo', 'test'])
+    >>> # test std operation
+    >>> response = run_shell_ls_command(['echo', 'test'], shell=True)
     >>> assert 'test' in response.stdout
 
-    >>> response = run_shell_ls_command(['echo', 'test'], pass_std_out_line_by_line=True)  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+    >>> # test pass stdout to sys
+    >>> response = run_shell_ls_command(['echo', 'test'],
+    ...                                 shell=True,
+    ...                                 pass_stdout_stderr_to_sys=True)  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
     te...
     >>> assert 'test' in response.stdout
 
-    >>> response = run_shell_ls_command(['ls', '--unknown'],
-    ...     pass_std_out_line_by_line=True, raise_on_returncode_not_zero=False)  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
-    >>> assert '--unknown' in response.stderr
+    >>> # test pass stderr to sys - without raising Exception
+    >>> if lib_platform.is_platform_posix:
+    ...     response = run_shell_ls_command(['ls', '--unknown'],
+    ...                pass_stdout_stderr_to_sys=True,
+    ...                raise_on_returncode_not_zero=False)  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+    ...     assert '--unknown' in response.stderr
+    ... elif lib_platform.is_platform_windows:
+    ...     response = run_shell_ls_command(['dir', '/unknown'],
+    ...                shell=True,
+    ...                pass_stdout_stderr_to_sys=True,
+    ...                raise_on_returncode_not_zero=False)  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+    ...     assert 'unknown' in response.stderr
 
 
+    >>> # test pass stderr to sys - raising Exception
+    >>> if lib_platform.is_platform_posix:
+    ...     unittest.TestCase().assertRaises(subprocess.CalledProcessError,
+    ...         run_shell_ls_command, ['ls', '--unknown'], shell=True, pass_stdout_stderr_to_sys=True)
+
+    >>> if lib_platform.is_platform_windows:
+    ...     unittest.TestCase().assertRaises(subprocess.CalledProcessError,
+    ...         run_shell_ls_command, ['dir', '/unknown'], shell=True, pass_stdout_stderr_to_sys=True)
+
+
+    >>> # test std operation without communication
+    >>> response = run_shell_ls_command(['echo', 'test'], shell=True, communicate=False)
+    >>> assert response.returncode == 0
+
+    >>> # test std operation without communication, no_wait
+    >>> response = run_shell_ls_command(['echo', 'test'], shell=True, communicate=False, wait_finish=False)
+    >>> assert response.returncode == 0
 
     """
     ls_command = [str(s_command) for s_command in ls_command]
@@ -120,9 +146,9 @@ def run_shell_ls_command(ls_command: List[str], shell: bool = False, communicate
     if communicate:
         encoding = lib_detect_encoding.get_encoding()
 
-        if pass_std_out_line_by_line:
+        if pass_stdout_stderr_to_sys:
             # Read data from stdout and stderr and passes it to the caller, until end-of-file is reached. Wait for process to terminate.
-            stdout, stderr = pass_pipes.pass_stdout_stderr_to_caller(my_process, encoding)
+            stdout, stderr = pass_pipes.pass_stdout_stderr_to_sys(my_process, encoding)
         else:
             # Send data to stdin. Read data from stdout and stderr, until end-of-file is reached. Wait for process to terminate.
             stdout, stderr = my_process.communicate()
@@ -154,24 +180,29 @@ def run_shell_ls_command(ls_command: List[str], shell: bool = False, communicate
     return command_response
 
 
-def shlex_split_multi_platform(s_commandline: str, is_platform_windows: Optional[bool] = None) -> List[str]:
+def shlex_split_multi_platform(s_commandline: str, is_platform_windows: bool = None) -> List[str]:
     """
     its ~10x faster than shlex, which does single-char stepping and streaming;
     and also respects pipe-related characters (unlike shlex).
 
     from : https://stackoverflow.com/questions/33560364/python-windows-parsing-command-lines-with-shlex
 
-    # >>> import lib_time
-    # >>> import decorator_timeit
-    # >>> decorator_timeit.TimeIt(repeat=100000)(shlex_split_multi_platform)('c:/test.exe /n /r /s=test')
-    # ['c:/test.exe', '/n', '/r', '/s=test']
+    >>> shlex_split_multi_platform('c:/test.exe /n /r /s=test | test2.exe > test3.txt', is_platform_windows=True)
+    ['c:/test.exe', '/n', '/r', '/s=test', '|', 'test2.exe', '>', 'test3.txt']
+    >>> shlex_split_multi_platform('c:/test.exe /n /r /s=test | test2.exe > test3.txt', is_platform_windows=False)
+    ['c:/test.exe', '/n', '/r', '/s=test', '|', 'test2.exe', '>', 'test3.txt']
 
-    >>> shlex_split_multi_platform('c:/test.exe /n /r /s=test')
-    ['c:/test.exe', '/n', '/r', '/s=test']
-
+    >>> shlex_split_multi_platform('c:/test.exe /n /r \\t \\e[0m /s=""test" ,', is_platform_windows=True)
+    ['c:/test.exe', '/n', '/r', '\\\\e[0m', '/s=test ,']
+    >>> shlex_split_multi_platform('c:/test.exe /n /r \\t \\e[0m /s=""test" ,',
+    ...     is_platform_windows=False)  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    Traceback (most recent call last):
+        ...
+    ValueError: invalid or incomplete shell string
 
     """
-    is_platform_windows = lib_parameter.get_default_if_none(is_platform_windows, default=lib_platform.is_platform_windows)
+    is_platform_windows = lib_parameter.get_default_if_none(
+        is_platform_windows, default=lib_platform.is_platform_windows)  # type: ignore
 
     if is_platform_windows:
         re_cmd_lex_precompiled = _re_cmd_lex_precompiled_win
@@ -210,6 +241,21 @@ def shlex_split_multi_platform(s_commandline: str, is_platform_windows: Optional
 
 
 def _log_results(s_command: str, stdout: str, stderr: str, returncode: int, wait_finish: bool, log_settings: RunShellCommandLogSettings) -> None:
+    """
+    >>> log_settings = set_log_settings_to_level(level=logging.WARNING)
+    >>> # test std operation
+    >>> import lib_doctest_pycharm
+    >>> response = run_shell_ls_command(['echo', 'test'], shell=True, log_settings=log_settings)
+    >>> assert 'test' in response.stdout
+
+    >>> # test std operation without communication, no_wait
+    >>> response = run_shell_ls_command(['echo', 'test'], shell=True, log_settings=log_settings,
+    ...                                 communicate=False, wait_finish=False)
+    >>> assert response.returncode == 0
+
+
+
+    """
     logger = logging.getLogger()
     if returncode:
         log_level_command = log_settings.log_level_command_on_error
@@ -250,6 +296,22 @@ def _delete_empty_lines(text: str) -> str:
 
 
 def get_startup_info(start_new_session: bool):    # type: ignore  # is subprocess.STARTUPINFO - only available on windows !
+    """
+    >>> if lib_platform.is_platform_windows:
+    ...     result = get_startup_info(start_new_session=False)
+    ...     assert result.dwFlags == 1
+    ...     assert type(result) == subprocess.STARTUPINFO
+    ...     result = get_startup_info(start_new_session=True)
+    ...     assert type(result) == subprocess.STARTUPINFO
+    ...     assert result.dwFlags == 521
+
+    >>> if lib_platform.is_platform_posix:
+    ...     result = get_startup_info(start_new_session=False)
+    ...     assert result is None
+    ...     result = get_startup_info(start_new_session=True)
+    ...     assert result is None
+
+    """
     if lib_platform.is_platform_windows:
         startupinfo = subprocess.STARTUPINFO()                  # type: ignore
         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW  # type: ignore    # HIDE CONSOLE
@@ -267,7 +329,14 @@ def get_startup_info(start_new_session: bool):    # type: ignore  # is subproces
 
 
 def get_pipes(start_new_session: bool) -> Tuple[Optional[int], Optional[int], Optional[int]]:
+    """
+    >>> result1, result2, result3 = get_pipes(start_new_session=True)
+    >>> assert result1 == result2 == result3 is None
 
+    >>> result1, result2, result3 = get_pipes(start_new_session=False)
+    >>> assert type(result1) == type(result2) == type(result3) == type(int())
+
+    """
     if start_new_session:
         subprocess_stdin = None
         subprocess_stdout = None
@@ -280,8 +349,34 @@ def get_pipes(start_new_session: bool) -> Tuple[Optional[int], Optional[int], Op
     return subprocess_stdin, subprocess_stdout, subprocess_stderr
 
 
-def set_log_settings_returncode_not_zero_to_level(level: int,
-                                                  log_settings: RunShellCommandLogSettings = RunShellCommandLogSettings()) -> RunShellCommandLogSettings:
+def set_log_settings_returncode_zero_to_level(
+        level: int,
+        log_settings: RunShellCommandLogSettings = RunShellCommandLogSettings()) -> RunShellCommandLogSettings:
+    """
+    >>> result = set_log_settings_returncode_zero_to_level(level=1)
+    >>> assert result.log_level_command == 1
+    >>> assert result.log_level_returncode == 1
+    >>> assert result.log_level_stdout == 1
+    >>> assert result.log_level_stderr == 1
+    """
+
+    log_settings.log_level_command = level
+    log_settings.log_level_returncode = level
+    log_settings.log_level_stdout = level
+    log_settings.log_level_stderr = level
+    return log_settings
+
+
+def set_log_settings_returncode_not_zero_to_level(
+        level: int,
+        log_settings: RunShellCommandLogSettings = RunShellCommandLogSettings()) -> RunShellCommandLogSettings:
+    """
+    >>> result = set_log_settings_returncode_not_zero_to_level(level=2)
+    >>> assert result.log_level_command_on_error == 2
+    >>> assert result.log_level_returncode_on_error == 2
+    >>> assert result.log_level_stdout_on_error == 2
+    >>> assert result.log_level_stderr_on_error == 2
+    """
 
     log_settings.log_level_command_on_error = level
     log_settings.log_level_returncode_on_error = level
@@ -290,18 +385,21 @@ def set_log_settings_returncode_not_zero_to_level(level: int,
     return log_settings
 
 
-def set_log_settings_returncode_zero_to_level(level: int,
-                                              log_settings: RunShellCommandLogSettings = RunShellCommandLogSettings()) -> RunShellCommandLogSettings:
+def set_log_settings_to_level(
+        level: int,
+        log_settings: RunShellCommandLogSettings = RunShellCommandLogSettings()) -> RunShellCommandLogSettings:
 
-    log_settings.log_level_command_on_error = level
-    log_settings.log_level_returncode_on_error = level
-    log_settings.log_level_stdout_on_error = level
-    log_settings.log_level_stderr_on_error = level
-    return log_settings
-
-
-def set_log_settings_to_level(level: int,
-                              log_settings: RunShellCommandLogSettings = RunShellCommandLogSettings()) -> RunShellCommandLogSettings:
+    """
+    >>> result = set_log_settings_to_level(level=3)
+    >>> assert result.log_level_command == 3
+    >>> assert result.log_level_returncode == 3
+    >>> assert result.log_level_stdout == 3
+    >>> assert result.log_level_stderr == 3
+    >>> assert result.log_level_command_on_error == 3
+    >>> assert result.log_level_returncode_on_error == 3
+    >>> assert result.log_level_stdout_on_error == 3
+    >>> assert result.log_level_stderr_on_error == 3
+    """
 
     log_settings = set_log_settings_returncode_not_zero_to_level(level=level, log_settings=log_settings)
     log_settings = set_log_settings_returncode_zero_to_level(level=level, log_settings=log_settings)

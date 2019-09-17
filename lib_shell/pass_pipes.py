@@ -20,7 +20,7 @@ logger = logging.getLogger()
 # we might end up with many many open threads
 # it works, but afraid to use it on long running programs - it might explode
 # select is also not an option in windows
-def pass_stdout_stderr_to_caller(process: subprocess.Popen, encoding: str) -> Tuple[bytes, bytes]:
+def pass_stdout_stderr_to_sys(process: subprocess.Popen, encoding: str) -> Tuple[bytes, bytes]:
     l_stdout = list()               # type: List[bytes]
     l_stderr = list()               # type: List[bytes]
 
@@ -45,12 +45,21 @@ def pass_stdout_stderr_to_caller(process: subprocess.Popen, encoding: str) -> Tu
     poll_queue(queue_stderr, sys.stderr, l_stderr, encoding)
     stdout_complete = b''.join(l_stdout)
     stderr_complete = b''.join(l_stderr)
+
     if thread_stdout.is_alive():
-        logger.error('thread for stdout still alive !')
+        report_thread_not_closed(process=process, pipe_name='stdout')
     if thread_stderr.is_alive():
-        logger.error('thread for stderr still alive !')
+        report_thread_not_closed(process=process, pipe_name='stderr')
 
     return stdout_complete, stderr_complete
+
+
+def report_thread_not_closed(process: subprocess.Popen, pipe_name: str) -> None:
+    cmd_args = [str(cmd_arg) for cmd_arg in process.args]   # type: List[str]
+    command = ' '.join(cmd_args)
+    error_msg = 'stalled I/O thread for "{pipe_name}" on command "{command}"'.format(pipe_name=pipe_name, command=command)
+    error_msg = error_msg + ' - consider to call it without option pass_stdout_stderr_to_sys'
+    logger.error(error_msg)
 
 
 def enque_output(out: Any, message_queue: ByteQueue) -> None:
