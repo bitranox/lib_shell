@@ -66,7 +66,11 @@ def run_shell_command(command: str, shell: bool = False, communicate: bool = Tru
     """
     log_settings = lib_parameter.get_default_if_none(log_settings, default=RunShellCommandLogSettings())
     command = command.strip()
-    ls_command = shlex_split_multi_platform(command)
+
+    if shell:
+        ls_command = [command.strip()]
+    else:
+        ls_command = shlex_split_multi_platform(command)
 
     command_response = run_shell_ls_command(ls_command=ls_command,
                                             shell=shell,
@@ -84,20 +88,28 @@ def run_shell_ls_command(ls_command: List[str], shell: bool = False, communicate
                          log_settings: Optional[RunShellCommandLogSettings] = None, pass_stdout_stderr_to_sys: bool = False,
                          start_new_session: bool = False) -> ShellCommandResponse:
     """
+    when using shell=True pass the commands as string in the first element of the list - not tested under windows until now
+
     >>> import unittest
 
-    >>> if lib_platform.is_platform_posix:
-    ...     use_shell=False
-    ... else:
-    ...     use_shell=True
+    >>> # test std operation
+    >>> response = run_shell_ls_command(['echo', 'test'], shell=True)
+    >>> assert 'test' in response.stdout
 
     >>> # test std operation
-    >>> response = run_shell_ls_command(['echo', 'test'], shell=use_shell)
+    >>> response = run_shell_ls_command(['echo', 'test'], shell=False)
     >>> assert 'test' in response.stdout
 
     >>> # test pass stdout to sys
     >>> response = run_shell_ls_command(['echo', 'test'],
-    ...                                 shell=use_shell,
+    ...                                 shell=False,
+    ...                                 pass_stdout_stderr_to_sys=True)  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+    te...
+    >>> assert 'test' in response.stdout
+
+    >>> # test pass stdout to sys
+    >>> response = run_shell_ls_command(['echo', 'test'],
+    ...                                 shell=True,
     ...                                 pass_stdout_stderr_to_sys=True)  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
     te...
     >>> assert 'test' in response.stdout
@@ -130,15 +142,26 @@ def run_shell_ls_command(ls_command: List[str], shell: bool = False, communicate
 
 
     >>> # test std operation without communication
-    >>> response = run_shell_ls_command(['echo', 'test'], shell=use_shell, communicate=False)
+    >>> response = run_shell_ls_command(['echo', 'test'], shell=False, communicate=False)
+    >>> assert response.returncode == 0
+
+    >>> # test std operation without communication
+    >>> response = run_shell_ls_command(['echo', 'test'], shell=True, communicate=False)
+    >>> assert response.returncode == 0
+
+
+    >>> # test std operation without communication, no_wait
+    >>> response = run_shell_ls_command(['echo', 'test'], shell=False, communicate=False, wait_finish=False)
     >>> assert response.returncode == 0
 
     >>> # test std operation without communication, no_wait
-    >>> response = run_shell_ls_command(['echo', 'test'], shell=use_shell, communicate=False, wait_finish=False)
+    >>> response = run_shell_ls_command(['echo', 'test'], shell=True, communicate=False, wait_finish=False)
     >>> assert response.returncode == 0
 
     """
     ls_command = [str(s_command) for s_command in ls_command]
+    if shell:
+        ls_command = [' '.join(ls_command)]
     log_settings_struct = lib_parameter.get_default_if_none(log_settings, default=RunShellCommandLogSettings())
     my_env = os.environ.copy()
     my_env['PYTHONIOENCODING'] = 'utf-8'
