@@ -92,25 +92,42 @@ def run_shell_ls_command(ls_command: List[str], shell: bool = False, communicate
 
     >>> import unittest
 
-    >>> # test std operation
-    >>> response = run_shell_ls_command(['echo', 'test'], shell=True)
+    >>> # test std operation, shell=True
+    >>> if lib_platform.is_platform_posix:
+    ...     response = run_shell_ls_command(['echo', 'test'], shell=True)
+    ... else:
+    ...     response = run_shell_ls_command(['cmd', '/C', 'echo test'], shell=True)
     >>> assert 'test' in response.stdout
 
-    >>> # test std operation
-    >>> response = run_shell_ls_command(['echo', 'test'], shell=False)
+
+    >>> # test std operation, shell=False
+    >>> if lib_platform.is_platform_posix:
+    ...     response = run_shell_ls_command(['echo', 'test'], shell=False)
+    ... else:
+    ...     response = run_shell_ls_command(['cmd', '/C', 'echo test'], shell=False)
     >>> assert 'test' in response.stdout
 
-    >>> # test pass stdout to sys
-    >>> response = run_shell_ls_command(['echo', 'test'],
-    ...                                 shell=False,
-    ...                                 pass_stdout_stderr_to_sys=True)  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+    >>> # test pass stdout to sys, shell=True
+    >>> if lib_platform.is_platform_posix:
+    ...     response = run_shell_ls_command(['echo', 'test'],
+    ...                                     shell=True,
+    ...                                     pass_stdout_stderr_to_sys=True)  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+    ... else:
+    ...     response = run_shell_ls_command(['cmd', '/C', 'echo test'],
+    ...                                     shell=True,
+    ...                                     pass_stdout_stderr_to_sys=True)  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
     te...
     >>> assert 'test' in response.stdout
 
-    >>> # test pass stdout to sys
-    >>> response = run_shell_ls_command(['echo', 'test'],
-    ...                                 shell=True,
-    ...                                 pass_stdout_stderr_to_sys=True)  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+    >>> # test pass stdout to sys, shell=False
+    >>> if lib_platform.is_platform_posix:
+    ...     response = run_shell_ls_command(['echo', 'test'],
+    ...                                     shell=False,
+    ...                                     pass_stdout_stderr_to_sys=True)  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+    ... else:
+    ...     response = run_shell_ls_command(['cmd', '/C', 'echo test'],
+    ...                                     shell=False,
+    ...                                     pass_stdout_stderr_to_sys=True)  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
     te...
     >>> assert 'test' in response.stdout
 
@@ -128,34 +145,50 @@ def run_shell_ls_command(ls_command: List[str], shell: bool = False, communicate
     ...                shell=True,
     ...                pass_stdout_stderr_to_sys=True,
     ...                raise_on_returncode_not_zero=False)  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
-    ...     assert 'unknown' in response.stderr
-
+    ...     assert ('unknown' in response.stderr) or \
+                   ('Das System kann den angegebenen Pfad nicht finden' in response.stderr)
 
     >>> # test pass stderr to sys - raising Exception
     >>> if lib_platform.is_platform_posix:
     ...     unittest.TestCase().assertRaises(subprocess.CalledProcessError,
-    ...         run_shell_ls_command, ['ls', '--unknown'], pass_stdout_stderr_to_sys=True)
+    ...         run_shell_ls_command, ['ls', '--unknown'], pass_stdout_stderr_to_sys=True, shell=True)
+    ...     unittest.TestCase().assertRaises(subprocess.CalledProcessError,
+    ...         run_shell_ls_command, ['ls', '--unknown'], pass_stdout_stderr_to_sys=True, shell=False)
 
     >>> if lib_platform.is_platform_windows:
     ...     unittest.TestCase().assertRaises(subprocess.CalledProcessError,
-    ...         run_shell_ls_command, ['dir', '/unknown'], shell=True, pass_stdout_stderr_to_sys=True)
+    ...         run_shell_ls_command, ['dir', '/unknown'], pass_stdout_stderr_to_sys=True, shell=True)
+    ...     unittest.TestCase().assertRaises(subprocess.CalledProcessError,
+    ...         run_shell_ls_command, ['cmd','/C', 'dir /unknown'], pass_stdout_stderr_to_sys=True, shell=False)
 
-
-    >>> # test std operation without communication
-    >>> response = run_shell_ls_command(['echo', 'test'], shell=False, communicate=False)
+    >>> # test std operation without communication, shell=True
+    >>> if lib_platform.is_platform_posix:
+    ...     response = run_shell_ls_command(['echo', 'test'], shell=True, communicate=False)
+    ... else:
+    ...     response = run_shell_ls_command(['cmd', '/C', 'echo test'], shell=True, communicate=False)
     >>> assert response.returncode == 0
 
-    >>> # test std operation without communication
-    >>> response = run_shell_ls_command(['echo', 'test'], shell=True, communicate=False)
+    >>> # test std operation without communication, shell=False
+    >>> if lib_platform.is_platform_posix:
+    ...     response = run_shell_ls_command(['echo', 'test'], shell=False, communicate=False)
+    ... else:
+    ...     response = run_shell_ls_command(['cmd', '/C', 'echo test'], shell=False, communicate=False)
     >>> assert response.returncode == 0
 
-
-    >>> # test std operation without communication, no_wait
-    >>> response = run_shell_ls_command(['echo', 'test'], shell=False, communicate=False, wait_finish=False)
+    >>> # test std operation without communication, no_wait; shell=True
+    >>> if lib_platform.is_platform_posix:
+    ...     response = run_shell_ls_command(['echo', 'test'], shell=True, communicate=False, wait_finish=False)
+    ... else:
+    ...     response = run_shell_ls_command(['cmd', '/C', 'echo test'], shell=True,
+    ...        communicate=False, wait_finish=False)
     >>> assert response.returncode == 0
 
-    >>> # test std operation without communication, no_wait
-    >>> response = run_shell_ls_command(['echo', 'test'], shell=True, communicate=False, wait_finish=False)
+    >>> # test std operation without communication, no_wait; shell=False
+    >>> if lib_platform.is_platform_posix:
+    ...     response = run_shell_ls_command(['echo', 'test'], shell=False, communicate=False, wait_finish=False)
+    ... else:
+    ...     response = run_shell_ls_command(['cmd', '/C', 'echo test'], shell=False,
+    ...        communicate=False, wait_finish=False)
     >>> assert response.returncode == 0
 
     """
