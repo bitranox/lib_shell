@@ -68,11 +68,18 @@ def run_shell_command(command: str,
                       use_sudo: bool = False,
                       run_as_user: str = '') -> ShellCommandResponse:
     """
+    >>> import unittest
     >>> response = run_shell_command('echo test', shell=True)
     >>> assert 'test' in response.stdout
 
     >>> response = run_shell_command('echo test', shell=False)
     >>> assert 'test' in response.stdout
+
+    >>> if lib_platform.is_platform_posix:
+    ...     response = run_shell_command('echo test', use_sudo=True)
+    ...     assert 'test' in response.stdout
+    ... else:
+    ...     unittest.TestCase().assertRaises(RuntimeError, run_shell_command, 'echo test', use_sudo=True)
 
     >>> response = run_shell_command('echo test', use_sudo=True)
     >>> assert 'test' in response.stdout
