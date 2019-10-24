@@ -81,9 +81,6 @@ def run_shell_command(command: str,
     ... else:
     ...     unittest.TestCase().assertRaises(RuntimeError, run_shell_command, 'echo test', use_sudo=True)
 
-    >>> response = run_shell_command('echo test', use_sudo=True)
-    >>> assert 'test' in response.stdout
-
     >>> user = lib_shell_helpers.get_current_username()
     >>> response = run_shell_command('echo test', run_as_user=user)
     >>> assert 'test' in response.stdout
