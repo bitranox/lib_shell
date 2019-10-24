@@ -32,7 +32,7 @@ matrix:
 
     - os: windows
       language: sh
-      name: "Windows Python 3.7"
+      name: "Windows Python 3.8"
 
       # oddly a secure password under env: global: causes that choco fails
       # so we need to put the option : filter_secrets: false
