@@ -164,7 +164,6 @@ def _run_shell_ls_command_one_try(ls_command: List[str],
     ...     response = run_shell_ls_command(['cmd', '/C', 'echo test'], shell=True)
     >>> assert 'test' in response.stdout
 
-
     >>> # test std operation, shell=False
     >>> if lib_platform.is_platform_posix:
     ...     response = run_shell_ls_command(['echo', 'test'], shell=False)
