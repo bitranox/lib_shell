@@ -85,7 +85,7 @@ def run_shell_command(command: str,
     log_settings = lib_parameter.get_default_if_none(log_settings, default=RunShellCommandLogSettings())
     command = command.strip()
 
-    if shell:
+    if shell and lib_platform.is_platform_posix:
         ls_command = [command.strip()]
     else:
         ls_command = shlex_split_multi_platform(command)
