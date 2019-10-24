@@ -20,7 +20,7 @@ logger = logging.getLogger()
 # we might end up with many many open threads
 # it works, but afraid to use it on long running programs - it might explode
 # select is also not an option in windows
-def pass_stdout_stderr_to_sys(process: subprocess.Popen, encoding: str) -> Tuple[bytes, bytes]:
+def pass_stdout_stderr_to_sys(process: subprocess.Popen, encoding: str) -> Tuple[bytes, bytes]:   # type: ignore
     l_stdout = list()               # type: List[bytes]
     l_stderr = list()               # type: List[bytes]
 
@@ -56,7 +56,7 @@ def pass_stdout_stderr_to_sys(process: subprocess.Popen, encoding: str) -> Tuple
     return stdout_complete, stderr_complete
 
 
-def report_thread_not_closed(process: Union[subprocess.Popen, subprocess.CompletedProcess], pipe_name: str) -> None:
+def report_thread_not_closed(process: Union[subprocess.Popen, subprocess.CompletedProcess], pipe_name: str) -> None:   # type: ignore
     """
     >>> process=subprocess.CompletedProcess(args=['a', 'b', 'c'], returncode=0)
     >>> report_thread_not_closed(process=process, pipe_name='stdout')
