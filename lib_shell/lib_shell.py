@@ -255,7 +255,7 @@ def _run_shell_ls_command_one_try(ls_command: List[str],
     """
     ls_command = [str(s_command) for s_command in ls_command]
 
-    if shell:
+    if shell and lib_platform.is_platform_posix:
         ls_command = [' '.join(ls_command)]
 
     if run_as_user:
