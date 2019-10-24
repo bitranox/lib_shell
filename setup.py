@@ -14,6 +14,7 @@ required = ['lib_detect_encoding @ git+https://github.com/bitranox/lib_detect_en
             'lib_list @ git+https://github.com/bitranox/lib_list.git',
             'lib_log_utils @ git+https://github.com/bitranox/lib_log_utils.git',
             'lib_parameter @ git+https://github.com/bitranox/lib_parameter.git',
+            'lib_platform @ git+https://github.com/bitranox/lib_platform.git',
             'lib_regexp @ git+https://github.com/bitranox/lib_regexp.git']      # type: List
 
 

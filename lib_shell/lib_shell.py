@@ -16,9 +16,14 @@ import lib_regexp
 # PROJ
 try:                                            # type: ignore # pragma: no cover
     # imports for local pytest
+    from .conf_lib_shell import conf_lib_shell  # type: ignore # pragma: no cover
+    from . import lib_shell_helpers             # type: ignore # pragma: no cover
     from . import pass_pipes                    # type: ignore # pragma: no cover
+
 except (ImportError, ModuleNotFoundError):      # type: ignore # pragma: no cover
     # imports for doctest local
+    from conf_lib_shell import conf_lib_shell   # type: ignore # pragma: no cover
+    import lib_shell_helpers                    # type: ignore # pragma: no cover
     import pass_pipes                           # type: ignore # pragma: no cover
 
 
@@ -51,16 +56,29 @@ class RunShellCommandLogSettings(object):
         self.log_level_returncode_on_error = logging.WARNING    # type: int
 
 
-def run_shell_command(command: str, shell: bool = False, communicate: bool = True,
-                      wait_finish: bool = True, raise_on_returncode_not_zero: bool = True,
+def run_shell_command(command: str,
+                      shell: bool = False,
+                      communicate: bool = True,
+                      wait_finish: bool = True,
+                      raise_on_returncode_not_zero: bool = True,
                       log_settings: Optional[RunShellCommandLogSettings] = None,
-                      pass_stdout_stderr_to_sys: bool = False, start_new_session: bool = False) -> ShellCommandResponse:
+                      pass_stdout_stderr_to_sys: bool = False,
+                      start_new_session: bool = False,
+                      retries: int = conf_lib_shell.retries,
+                      use_sudo: bool = False,
+                      run_as_user: str = '') -> ShellCommandResponse:
     """
-    >>> if lib_platform.is_platform_posix:
-    ...     use_shell=False
-    ... else:
-    ...     use_shell=True
-    >>> response = run_shell_command('echo test', shell=use_shell)   # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+    >>> response = run_shell_command('echo test', shell=True)
+    >>> assert 'test' in response.stdout
+
+    >>> response = run_shell_command('echo test', shell=False)
+    >>> assert 'test' in response.stdout
+
+    >>> response = run_shell_command('echo test', use_sudo=True)
+    >>> assert 'test' in response.stdout
+
+    >>> user = lib_shell_helpers.get_current_username()
+    >>> response = run_shell_command('echo test', run_as_user=user)
     >>> assert 'test' in response.stdout
 
     """
@@ -79,14 +97,57 @@ def run_shell_command(command: str, shell: bool = False, communicate: bool = Tru
                                             raise_on_returncode_not_zero=raise_on_returncode_not_zero,
                                             log_settings=log_settings,
                                             pass_stdout_stderr_to_sys=pass_stdout_stderr_to_sys,
-                                            start_new_session=start_new_session)
+                                            start_new_session=start_new_session,
+                                            retries=retries,
+                                            use_sudo=use_sudo,
+                                            run_as_user=run_as_user)
     return command_response
 
 
-def run_shell_ls_command(ls_command: List[str], shell: bool = False, communicate: bool = True,
-                         wait_finish: bool = True, raise_on_returncode_not_zero: bool = True,
-                         log_settings: Optional[RunShellCommandLogSettings] = None, pass_stdout_stderr_to_sys: bool = False,
-                         start_new_session: bool = False) -> ShellCommandResponse:
+def run_shell_ls_command(ls_command: List[str],
+                         shell: bool = False,
+                         communicate: bool = True,
+                         wait_finish: bool = True,
+                         raise_on_returncode_not_zero: bool = True,
+                         log_settings: Optional[RunShellCommandLogSettings] = None,
+                         pass_stdout_stderr_to_sys: bool = False,
+                         start_new_session: bool = False,
+                         retries: int = conf_lib_shell.retries,
+                         use_sudo: bool = False,
+                         run_as_user: str = '') -> ShellCommandResponse:
+
+    response = ShellCommandResponse()
+
+    for n in range(retries):
+        response = _run_shell_ls_command_one_try(ls_command=ls_command,
+                                                 shell=shell,
+                                                 communicate=communicate,
+                                                 wait_finish=wait_finish,
+                                                 raise_on_returncode_not_zero=False,
+                                                 log_settings=log_settings,
+                                                 pass_stdout_stderr_to_sys=pass_stdout_stderr_to_sys,
+                                                 start_new_session=start_new_session,
+                                                 use_sudo=use_sudo,
+                                                 run_as_user=run_as_user)
+        if response.returncode == 0:
+            break
+
+    if response.returncode != 0 and raise_on_returncode_not_zero:
+        raise subprocess.CalledProcessError(returncode=response.returncode, cmd=' '.join(ls_command), output=response.stdout, stderr=response.stderr)
+    response.stdout = response.stdout.strip()
+    return response
+
+
+def _run_shell_ls_command_one_try(ls_command: List[str],
+                                  shell: bool = False,
+                                  communicate: bool = True,
+                                  wait_finish: bool = True,
+                                  raise_on_returncode_not_zero: bool = True,
+                                  log_settings: Optional[RunShellCommandLogSettings] = None,
+                                  pass_stdout_stderr_to_sys: bool = False,
+                                  start_new_session: bool = False,
+                                  use_sudo: bool = False,
+                                  run_as_user: str = '') -> ShellCommandResponse:
     """
     when using shell=True pass the commands as string in the first element of the list - not tested under windows until now
 
@@ -193,8 +254,17 @@ def run_shell_ls_command(ls_command: List[str], shell: bool = False, communicate
 
     """
     ls_command = [str(s_command) for s_command in ls_command]
+
     if shell:
         ls_command = [' '.join(ls_command)]
+
+    if run_as_user:
+        ls_command = lib_shell_helpers.prepend_run_as_user_command(l_command=ls_command, user=run_as_user)
+        use_sudo = False    # sudo will be prepended if needed already by prepend_run_as_user_command
+
+    if use_sudo:
+        ls_command = lib_shell_helpers.prepend_sudo_command(l_command=ls_command)
+
     log_settings_struct = lib_parameter.get_default_if_none(log_settings, default=RunShellCommandLogSettings())
     my_env = os.environ.copy()
     my_env['PYTHONIOENCODING'] = 'utf-8'
