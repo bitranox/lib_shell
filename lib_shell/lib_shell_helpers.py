@@ -19,7 +19,8 @@ def prepend_sudo_command(l_command: List[str]) -> List[str]:
     """ Prepends Sudo Command to the List of commands
 
     >>> l_command=['test']
-    >>> assert prepend_sudo_command(l_command) == ['sudo', 'test']
+    >>> if lib_platform.is_platform_posix:
+    ...     assert prepend_sudo_command(l_command) == ['sudo', 'test']
 
     """
     if not conf_lib_shell.sudo_command_exists:
