@@ -52,11 +52,6 @@ matrix:
     - os: linux
       language: python
       python: '3.6'
-      # we can do that also with env - but we dont want to show it on the travis build overview
-      before_install:
-          - export mypy_static_typecheck="True"
-          - export build_docs="True"
-          - export deploy_on_pypi="False"
 
     - os: linux
       language: python
@@ -64,7 +59,12 @@ matrix:
 
     - os: linux
       language: python
-      python: '3.7-dev'
+      python: '3.8'
+      # we can do that also with env - but we dont want to show it on the travis build overview
+      before_install:
+          - export mypy_static_typecheck="True"
+          - export build_docs="True"
+          - export deploy_on_pypi="False"
 
     - os: linux
       language: python
