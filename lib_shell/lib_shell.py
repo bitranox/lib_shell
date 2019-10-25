@@ -7,8 +7,6 @@ from typing import List, Optional, Tuple
 
 # OWN
 import lib_detect_encoding
-import lib_list
-import lib_log_utils
 import lib_parameter
 import lib_platform
 import lib_regexp
@@ -18,13 +16,15 @@ try:                                            # type: ignore # pragma: no cove
     # imports for local pytest
     from .conf_lib_shell import conf_lib_shell  # type: ignore # pragma: no cover
     from . import lib_shell_helpers             # type: ignore # pragma: no cover
-    from . import pass_pipes                    # type: ignore # pragma: no cover
+    from . import lib_shell_log                 # type: ignore # pragma: no cover
+    from . import lib_shell_pass_output         # type: ignore # pragma: no cover
 
 except (ImportError, ModuleNotFoundError):      # type: ignore # pragma: no cover
     # imports for doctest local
     from conf_lib_shell import conf_lib_shell   # type: ignore # pragma: no cover
     import lib_shell_helpers                    # type: ignore # pragma: no cover
-    import pass_pipes                           # type: ignore # pragma: no cover
+    import lib_shell_log                        # type: ignore # pragma: no cover
+    import lib_shell_pass_output                # type: ignore # pragma: no cover
 
 
 # This sets the locale for all categories to the user’s default setting (typically specified in the LANG environment variable).
@@ -44,24 +44,12 @@ class ShellCommandResponse(object):
         self.stderr = ''
 
 
-class RunShellCommandLogSettings(object):
-    def __init__(self) -> None:
-        self.log_level_command = logging.NOTSET                 # type: int
-        self.log_level_command_on_error = logging.WARNING       # type: int
-        self.log_level_stdout = logging.NOTSET                  # type: int
-        self.log_level_stdout_on_error = logging.WARNING        # type: int
-        self.log_level_stderr = logging.NOTSET                  # type: int
-        self.log_level_stderr_on_error = logging.WARNING        # type: int
-        self.log_level_returncode = logging.NOTSET              # type: int
-        self.log_level_returncode_on_error = logging.WARNING    # type: int
-
-
 def run_shell_command(command: str,
                       shell: bool = False,
                       communicate: bool = True,
                       wait_finish: bool = True,
                       raise_on_returncode_not_zero: bool = True,
-                      log_settings: Optional[RunShellCommandLogSettings] = None,
+                      log_settings: Optional[lib_shell_log.RunShellCommandLogSettings] = None,
                       pass_stdout_stderr_to_sys: bool = False,
                       start_new_session: bool = False,
                       retries: int = conf_lib_shell.retries,
@@ -86,7 +74,7 @@ def run_shell_command(command: str,
     >>> assert 'test' in response.stdout
 
     """
-    log_settings = lib_parameter.get_default_if_none(log_settings, default=RunShellCommandLogSettings())
+    log_settings = lib_parameter.get_default_if_none(log_settings, default=lib_shell_log.RunShellCommandLogSettings())
     command = command.strip()
 
     if shell and lib_platform.is_platform_posix:
@@ -113,12 +101,35 @@ def run_shell_ls_command(ls_command: List[str],
                          communicate: bool = True,
                          wait_finish: bool = True,
                          raise_on_returncode_not_zero: bool = True,
-                         log_settings: Optional[RunShellCommandLogSettings] = None,
+                         log_settings: Optional[lib_shell_log.RunShellCommandLogSettings] = None,
                          pass_stdout_stderr_to_sys: bool = False,
                          start_new_session: bool = False,
                          retries: int = conf_lib_shell.retries,
                          use_sudo: bool = False,
                          run_as_user: str = '') -> ShellCommandResponse:
+
+    """
+
+    >>> log_settings = lib_shell_log.set_log_settings_to_level(level=logging.WARNING)
+
+    >>> if lib_platform.is_platform_posix:
+    ...     use_shell=False
+    ... else:
+    ...     use_shell=True
+
+
+    >>> # test std operation
+    >>> import lib_doctest_pycharm
+    >>> response = run_shell_ls_command(['echo', 'test'], shell=use_shell, log_settings=log_settings)
+    >>> assert 'test' in response.stdout
+
+    >>> # test std operation without communication, no_wait
+    >>> response = run_shell_ls_command(['echo', 'test'], shell=use_shell, log_settings=log_settings,
+    ...                                 communicate=False, wait_finish=False)
+    >>> assert response.returncode == 0
+
+
+    """
 
     response = ShellCommandResponse()
 
@@ -147,7 +158,7 @@ def _run_shell_ls_command_one_try(ls_command: List[str],
                                   communicate: bool = True,
                                   wait_finish: bool = True,
                                   raise_on_returncode_not_zero: bool = True,
-                                  log_settings: Optional[RunShellCommandLogSettings] = None,
+                                  log_settings: Optional[lib_shell_log.RunShellCommandLogSettings] = None,
                                   pass_stdout_stderr_to_sys: bool = False,
                                   start_new_session: bool = False,
                                   use_sudo: bool = False,
@@ -268,7 +279,7 @@ def _run_shell_ls_command_one_try(ls_command: List[str],
     if use_sudo:
         ls_command = lib_shell_helpers.prepend_sudo_command(l_command=ls_command)
 
-    log_settings_struct = lib_parameter.get_default_if_none(log_settings, default=RunShellCommandLogSettings())
+    log_settings_struct = lib_parameter.get_default_if_none(log_settings, default=lib_shell_log.RunShellCommandLogSettings())
     my_env = os.environ.copy()
     my_env['PYTHONIOENCODING'] = 'utf-8'
     my_env['PYTHONLEGACYWINDOWSIOENCODING'] = 'utf-8'
@@ -289,7 +300,7 @@ def _run_shell_ls_command_one_try(ls_command: List[str],
 
         if pass_stdout_stderr_to_sys:
             # Read data from stdout and stderr and passes it to the caller, until end-of-file is reached. Wait for process to terminate.
-            stdout, stderr = pass_pipes.pass_stdout_stderr_to_sys(my_process, encoding)
+            stdout, stderr = lib_shell_pass_output.pass_stdout_stderr_to_sys(my_process, encoding)
         else:
             # Send data to stdin. Read data from stdout and stderr, until end-of-file is reached. Wait for process to terminate.
             stdout, stderr = my_process.communicate()
@@ -309,7 +320,7 @@ def _run_shell_ls_command_one_try(ls_command: List[str],
             returncode = 0
 
     str_command = ' '.join(ls_command)
-    _log_results(str_command, stdout_str, stderr_str, returncode, wait_finish, log_settings_struct)
+    lib_shell_log.log_results(str_command, stdout_str, stderr_str, returncode, wait_finish, log_settings_struct)
 
     if raise_on_returncode_not_zero and returncode:
         raise subprocess.CalledProcessError(returncode=returncode, cmd=str_command, output=stdout_str, stderr=stderr_str)
@@ -383,68 +394,6 @@ def shlex_split_multi_platform(s_commandline: str, is_platform_windows: Optional
     return args
 
 
-def _log_results(s_command: str, stdout: str, stderr: str, returncode: int, wait_finish: bool, log_settings: RunShellCommandLogSettings) -> None:
-    """
-    >>> log_settings = set_log_settings_to_level(level=logging.WARNING)
-
-    >>> if lib_platform.is_platform_posix:
-    ...     use_shell=False
-    ... else:
-    ...     use_shell=True
-
-
-    >>> # test std operation
-    >>> import lib_doctest_pycharm
-    >>> response = run_shell_ls_command(['echo', 'test'], shell=use_shell, log_settings=log_settings)
-    >>> assert 'test' in response.stdout
-
-    >>> # test std operation without communication, no_wait
-    >>> response = run_shell_ls_command(['echo', 'test'], shell=use_shell, log_settings=log_settings,
-    ...                                 communicate=False, wait_finish=False)
-    >>> assert response.returncode == 0
-
-
-
-    """
-    logger = logging.getLogger()
-    if returncode:
-        log_level_command = log_settings.log_level_command_on_error
-        log_level_stderr = log_settings.log_level_stderr_on_error
-        log_level_stdout = log_settings.log_level_stdout_on_error
-    else:
-        log_level_command = log_settings.log_level_command
-        log_level_stderr = log_settings.log_level_stderr
-        log_level_stdout = log_settings.log_level_stdout
-
-    if log_level_command == log_level_stderr == log_level_stdout == logging.NOTSET:
-        return
-    else:
-        if wait_finish:
-            if returncode:
-                logger.log(level=log_level_command, msg='shell[ERROR#{}]: {}'.format(returncode, s_command))
-            else:
-                logger.log(level=log_level_command, msg='shell[OK]: {}'.format(s_command))
-        else:
-            logger.log(level=log_level_command, msg='shell[Fire and Forget]: {}'.format(s_command))
-
-        if stdout:
-            stdout = _delete_empty_lines(stdout)
-            logger.log(level=log_level_stdout, msg='shell stdout:\n{}'.format(stdout))
-        if stderr:
-            stderr = _delete_empty_lines(stderr)
-            logger.log(level=log_level_stderr, msg='shell stderr:\n{}'.format(stderr))
-
-    lib_log_utils.logger_flush_all_handlers()
-
-
-def _delete_empty_lines(text: str) -> str:
-    ls_lines = text.split('\n')
-    ls_lines = lib_list.ls_strip_elements(ls_lines)
-    ls_lines = lib_list.ls_del_empty_elements(ls_lines)
-    text_result = '\n'.join(ls_lines)
-    return text_result
-
-
 def get_startup_info(start_new_session: bool):    # type: ignore  # is subprocess.STARTUPINFO - only available on windows !
     """
     >>> if lib_platform.is_platform_windows:
@@ -497,60 +446,3 @@ def get_pipes(start_new_session: bool) -> Tuple[Optional[int], Optional[int], Op
         subprocess_stderr = subprocess.PIPE
 
     return subprocess_stdin, subprocess_stdout, subprocess_stderr
-
-
-def set_log_settings_returncode_zero_to_level(
-        level: int,
-        log_settings: RunShellCommandLogSettings = RunShellCommandLogSettings()) -> RunShellCommandLogSettings:
-    """
-    >>> result = set_log_settings_returncode_zero_to_level(level=1)
-    >>> assert result.log_level_command == 1
-    >>> assert result.log_level_returncode == 1
-    >>> assert result.log_level_stdout == 1
-    >>> assert result.log_level_stderr == 1
-    """
-
-    log_settings.log_level_command = level
-    log_settings.log_level_returncode = level
-    log_settings.log_level_stdout = level
-    log_settings.log_level_stderr = level
-    return log_settings
-
-
-def set_log_settings_returncode_not_zero_to_level(
-        level: int,
-        log_settings: RunShellCommandLogSettings = RunShellCommandLogSettings()) -> RunShellCommandLogSettings:
-    """
-    >>> result = set_log_settings_returncode_not_zero_to_level(level=2)
-    >>> assert result.log_level_command_on_error == 2
-    >>> assert result.log_level_returncode_on_error == 2
-    >>> assert result.log_level_stdout_on_error == 2
-    >>> assert result.log_level_stderr_on_error == 2
-    """
-
-    log_settings.log_level_command_on_error = level
-    log_settings.log_level_returncode_on_error = level
-    log_settings.log_level_stdout_on_error = level
-    log_settings.log_level_stderr_on_error = level
-    return log_settings
-
-
-def set_log_settings_to_level(
-        level: int,
-        log_settings: RunShellCommandLogSettings = RunShellCommandLogSettings()) -> RunShellCommandLogSettings:
-
-    """
-    >>> result = set_log_settings_to_level(level=3)
-    >>> assert result.log_level_command == 3
-    >>> assert result.log_level_returncode == 3
-    >>> assert result.log_level_stdout == 3
-    >>> assert result.log_level_stderr == 3
-    >>> assert result.log_level_command_on_error == 3
-    >>> assert result.log_level_returncode_on_error == 3
-    >>> assert result.log_level_stdout_on_error == 3
-    >>> assert result.log_level_stderr_on_error == 3
-    """
-
-    log_settings = set_log_settings_returncode_not_zero_to_level(level=level, log_settings=log_settings)
-    log_settings = set_log_settings_returncode_zero_to_level(level=level, log_settings=log_settings)
-    return log_settings

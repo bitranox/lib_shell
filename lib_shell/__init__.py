@@ -1,5 +1,6 @@
 import pathlib
 from .lib_shell import *
+from .lib_shell_log import *
 
 
 def get_version() -> str:

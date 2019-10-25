@@ -1,17 +1,27 @@
 # STDLIB
+import logging
 import subprocess
 
 # OWN
 import lib_platform
+
+# PROJ
+try:                                            # type: ignore # pragma: no cover
+    # imports for local pytest
+    from . import lib_shell_log                 # type: ignore # pragma: no cover
+except (ImportError, ModuleNotFoundError):      # type: ignore # pragma: no cover
+    # imports for doctest local
+    import lib_shell_log                        # type: ignore # pragma: no cover
 
 
 class ConfLibShell(object):
     def __init__(self) -> None:
         self.sudo_command = 'sudo'                                                                      # type: str
         self.retries = 3                                                                                # type: int
-        self.sudo_command_exists = get_sudo_command_exist(self.sudo_command)          # type: bool
-        # self.log_settings_default = RunShellCommandLogSettings()                                        # type: RunShellCommandLogSettings
-        # self.log_settings_quiet = RunShellCommandLogSettings()
+        self.sudo_command_exists = get_sudo_command_exist(self.sudo_command)                            # type: bool
+        self.log_settings_default = lib_shell_log.RunShellCommandLogSettings()                          # type: lib_shell_log.RunShellCommandLogSettings
+        self.log_settings_quiet = lib_shell_log.RunShellCommandLogSettings()                            # type: lib_shell_log.RunShellCommandLogSettings
+        self.log_settings_quiet = lib_shell_log.set_log_settings_to_level(logging.NOTSET, self.log_settings_quiet)
 
 
 def get_sudo_command_exist(sudo_command: str = 'sudo') -> bool:
