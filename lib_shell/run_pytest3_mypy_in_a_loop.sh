@@ -19,6 +19,11 @@ install_or_update_lib_bash
 
 source /usr/local/lib_bash/lib_helpers.sh
 
+function clean_caches {
+    clr_green "clean caches"
+    "$(command -v sudo 2>/dev/null)" rm -Rf ./.mypy_cache
+    "$(command -v sudo 2>/dev/null)" rm -Rf ./.pytest_cache
+}
 
 function upgrade_pytest {
     clr_green "updating pytest"
@@ -75,4 +80,5 @@ function pytest_loop {
 
 # upgrade_pytest
 # upgrade_mypy
+clean_caches
 pytest_loop

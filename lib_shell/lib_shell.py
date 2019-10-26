@@ -152,6 +152,7 @@ def run_shell_ls_command(ls_command: List[str],
             break
 
     if response.returncode != 0 and raise_on_returncode_not_zero:
+        ls_command = prepend_sudo_and_run_as_user(ls_command=ls_command, shell=shell, run_as_user=run_as_user, use_sudo=use_sudo)
         raise subprocess.CalledProcessError(returncode=response.returncode, cmd=' '.join(ls_command), output=response.stdout, stderr=response.stderr)
     response.stdout = response.stdout.strip()
     return response
@@ -278,17 +279,7 @@ def _run_shell_ls_command_one_try(ls_command: List[str],
     else:
         actual_log_settings = log_settings
 
-    ls_command = [str(s_command) for s_command in ls_command]
-
-    if shell and lib_platform.is_platform_posix:
-        ls_command = [' '.join(ls_command)]
-
-    if run_as_user:
-        ls_command = lib_shell_helpers.prepend_run_as_user_command(l_command=ls_command, user=run_as_user)
-        use_sudo = False    # sudo will be prepended if needed already by prepend_run_as_user_command
-
-    if use_sudo:
-        ls_command = lib_shell_helpers.prepend_sudo_command(l_command=ls_command)
+    ls_command = prepend_sudo_and_run_as_user(ls_command=ls_command, shell=shell, run_as_user=run_as_user, use_sudo=use_sudo)
 
     my_env = os.environ.copy()
     my_env['PYTHONIOENCODING'] = 'utf-8'
@@ -456,3 +447,20 @@ def get_pipes(start_new_session: bool) -> Tuple[Optional[int], Optional[int], Op
         subprocess_stderr = subprocess.PIPE
 
     return subprocess_stdin, subprocess_stdout, subprocess_stderr
+
+
+def prepend_sudo_and_run_as_user(ls_command: List[str], shell: bool, run_as_user: str, use_sudo: bool) -> List[str]:
+
+    ls_command = [str(s_command) for s_command in ls_command]
+
+    if shell and lib_platform.is_platform_posix:
+        ls_command = [' '.join(ls_command)]
+
+    if run_as_user:
+        ls_command = lib_shell_helpers.prepend_run_as_user_command(l_command=ls_command, user=run_as_user)
+        use_sudo = False    # sudo will be prepended if needed already by prepend_run_as_user_command
+
+    if use_sudo:
+        ls_command = lib_shell_helpers.prepend_sudo_command(l_command=ls_command)
+
+    return ls_command

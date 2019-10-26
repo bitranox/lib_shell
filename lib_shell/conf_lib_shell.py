@@ -16,12 +16,21 @@ except (ImportError, ModuleNotFoundError):      # type: ignore # pragma: no cove
 
 class ConfLibShell(object):
     def __init__(self) -> None:
-        self.sudo_command = 'sudo'                                                                      # type: str
-        self.retries = 3                                                                                # type: int
-        self.sudo_command_exists = get_sudo_command_exist(self.sudo_command)                            # type: bool
-        self.log_settings_default = lib_shell_log.RunShellCommandLogSettings()                          # type: lib_shell_log.RunShellCommandLogSettings
-        self.log_settings_quiet = lib_shell_log.RunShellCommandLogSettings()                            # type: lib_shell_log.RunShellCommandLogSettings
+        self._sudo_command = 'sudo'                                                                    # type: str
+        self.retries = 3                                                                               # type: int
+        self.sudo_command_exists = get_sudo_command_exist(self._sudo_command)                          # type: bool
+        self.log_settings_default = lib_shell_log.RunShellCommandLogSettings()                         # type: lib_shell_log.RunShellCommandLogSettings
+        self.log_settings_quiet = lib_shell_log.RunShellCommandLogSettings()                           # type: lib_shell_log.RunShellCommandLogSettings
         self.log_settings_quiet = lib_shell_log.set_log_settings_to_level(logging.NOTSET, self.log_settings_quiet)
+
+    @property
+    def sudo_command(self) -> str:
+        return self._sudo_command
+
+    @sudo_command.setter
+    def sudo_command(self, value: str) -> None:
+        self._sudo_command = str(value).strip()
+        self.sudo_command_exists = get_sudo_command_exist(self._sudo_command)
 
 
 def get_sudo_command_exist(sudo_command: str = 'sudo') -> bool:
