@@ -38,7 +38,7 @@ def prepend_run_as_user_command(l_command: List[str], user: str = '') -> List[st
     ...     assert prepend_run_as_user_command(l_command=l_command, user=user) == ['echo', '"test"']
     ...     user = 'some_user'
     ...     sudo_command = conf_lib_shell.sudo_command
-    ...     assert prepend_run_as_user_command(l_command=l_command, user=user) == [sudo_command, 'runuser', '-l', 'some_user', '-p', '-c', 'echo "test"']
+    ...     assert prepend_run_as_user_command(l_command=l_command, user=user) == [sudo_command, 'runuser', '-l', 'some_user', '-c', 'echo "test"']
 
     """
     user = str(user).strip()
@@ -46,7 +46,7 @@ def prepend_run_as_user_command(l_command: List[str], user: str = '') -> List[st
     if user != get_current_username():
         command = ' '.join(l_command)
         # -p preserve environment variables
-        l_command = ['runuser', '-l', str(user), '-p', '-c', command]
+        l_command = ['runuser', '-l', str(user), '-c', command]
         l_command = prepend_sudo_command(l_command=l_command)
     return l_command
 

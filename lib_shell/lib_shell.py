@@ -276,6 +276,7 @@ def _run_shell_ls_command_one_try(ls_command: List[str],
 
     if quiet:
         actual_log_settings = conf_lib_shell.log_settings_quiet
+        pass_stdout_stderr_to_sys = False
     else:
         actual_log_settings = log_settings
 
@@ -453,14 +454,14 @@ def prepend_sudo_and_run_as_user(ls_command: List[str], shell: bool, run_as_user
 
     ls_command = [str(s_command) for s_command in ls_command]
 
-    if shell and lib_platform.is_platform_posix:
-        ls_command = [' '.join(ls_command)]
-
     if run_as_user:
         ls_command = lib_shell_helpers.prepend_run_as_user_command(l_command=ls_command, user=run_as_user)
         use_sudo = False    # sudo will be prepended if needed already by prepend_run_as_user_command
 
     if use_sudo:
         ls_command = lib_shell_helpers.prepend_sudo_command(l_command=ls_command)
+
+    if shell and lib_platform.is_platform_posix:
+        ls_command = [' '.join(ls_command)]
 
     return ls_command
