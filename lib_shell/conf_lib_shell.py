@@ -50,7 +50,7 @@ def get_sudo_command_exist(sudo_command: str = 'sudo') -> bool:
         return False
     try:
         ls_command = ['bash', '-c', 'command -v {sudo_command}'.format(sudo_command=sudo_command)]
-        subprocess.run(ls_command, check=True, capture_output=True)
+        subprocess.check_output(ls_command, stderr=subprocess.PIPE)
         return True
     except subprocess.CalledProcessError:
         return False
