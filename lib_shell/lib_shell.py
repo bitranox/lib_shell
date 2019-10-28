@@ -308,8 +308,14 @@ def _run_shell_ls_command_one_try(ls_command: List[str],
             stdout, stderr = my_process.communicate()
 
         encoding = lib_detect_encoding.detect_encoding(stdout + stderr)
-        stdout_str = stdout.decode(encoding)
-        stderr_str = stderr.decode(encoding)
+        try:
+            stdout_str = stdout.decode(encoding)
+            stderr_str = stderr.decode(encoding)
+        # on Wine we might get Windows encoded response
+        except UnicodeDecodeError:
+            encoding = lib_detect_encoding.get_encoding_windows()
+            stdout_str = stdout.decode(encoding)
+            stderr_str = stderr.decode(encoding)
         returncode = my_process.returncode
 
     else:
