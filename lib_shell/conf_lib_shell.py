@@ -21,7 +21,8 @@ class ConfLibShell(object):
         self.sudo_command_exists = get_sudo_command_exist(self._sudo_command)                          # type: bool
         self.log_settings_default = lib_shell_log.RunShellCommandLogSettings()                         # type: lib_shell_log.RunShellCommandLogSettings
         self.log_settings_quiet = lib_shell_log.RunShellCommandLogSettings()                           # type: lib_shell_log.RunShellCommandLogSettings
-        self.log_settings_quiet = lib_shell_log.set_log_settings_to_level(logging.NOTSET, self.log_settings_quiet)
+        # self.log_settings_quiet = lib_shell_log.set_log_settings_to_level(logging.NOTSET, self.log_settings_quiet)
+        self.log_settings_quiet = lib_shell_log.set_log_settings_returncode_zero_to_level(logging.NOTSET, self.log_settings_quiet)
 
     @property
     def sudo_command(self) -> str:
