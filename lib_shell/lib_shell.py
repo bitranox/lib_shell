@@ -297,6 +297,9 @@ def _run_shell_ls_command_one_try(ls_command: List[str],
                                   shell=shell,
                                   env=my_env)
 
+    if start_new_session:
+        communicate = False
+
     if communicate:
         encoding = lib_detect_encoding.get_encoding()
 
