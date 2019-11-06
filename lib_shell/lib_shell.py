@@ -2,6 +2,7 @@
 import locale
 import logging
 import os
+import re
 import subprocess
 from typing import List, Optional, Tuple
 
@@ -9,7 +10,6 @@ from typing import List, Optional, Tuple
 import lib_detect_encoding
 import lib_parameter
 import lib_platform
-import lib_regexp
 
 # PROJ
 try:                                            # type: ignore # pragma: no cover
@@ -30,11 +30,8 @@ except (ImportError, ModuleNotFoundError):      # type: ignore # pragma: no cove
 # This sets the locale for all categories to the user’s default setting (typically specified in the LANG environment variable).
 locale.setlocale(locale.LC_ALL, '')
 
-_re_cmd_lex_win = r'''"((?:""|\\["\\]|[^"])*)"?()|(\\\\(?=\\*")|\\")|(&&?|\|\|?|\d?>|[<])|([^\s"&|<>]+)|(\s+)|(.)'''
-_re_cmd_lex_precompiled_win = lib_regexp.ClassRegexExecute(s_regexp=_re_cmd_lex_win)
-
-_re_cmd_lex_posix = r'''"((?:\\["\\]|[^"])*)"|'([^']*)'|(\\.)|(&&?|\|\|?|\d?\>|[<])|([^\s'"\\&|<>]+)|(\s+)|(.)'''
-_re_cmd_lex_precompiled_posix = lib_regexp.ClassRegexExecute(s_regexp=_re_cmd_lex_posix)
+_re_cmd_lex_precompiled_win = re.compile(pattern=r'''"((?:""|\\["\\]|[^"])*)"?()|(\\\\(?=\\*")|\\")|(&&?|\|\|?|\d?>|[<])|([^\s"&|<>]+)|(\s+)|(.)''', flags=0)
+_re_cmd_lex_precompiled_posix = re.compile(pattern=r'''"((?:\\["\\]|[^"])*)"|'([^']*)'|(\\.)|(&&?|\|\|?|\d?\>|[<])|([^\s'"\\&|<>]+)|(\s+)|(.)''', flags=0)
 
 
 class ShellCommandResponse(object):
