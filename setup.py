@@ -10,7 +10,8 @@ except ImportError:
     from distutils.core import setup
 
 package_name = 'lib_shell'                                                          # type: str
-required = ['lib_detect_encoding @ git+https://github.com/bitranox/lib_detect_encoding.git',
+required = ['psutil',
+            'lib_detect_encoding @ git+https://github.com/bitranox/lib_detect_encoding.git',
             'lib_list @ git+https://github.com/bitranox/lib_list.git',
             'lib_log_utils @ git+https://github.com/bitranox/lib_log_utils.git',
             'lib_parameter @ git+https://github.com/bitranox/lib_parameter.git',

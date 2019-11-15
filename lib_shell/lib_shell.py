@@ -362,6 +362,9 @@ def shlex_split_multi_platform(s_commandline: str, is_platform_windows: Optional
         ...
     ValueError: invalid or incomplete shell string
 
+    >>> shlex_split_multi_platform('zathura -- "/home/user/Documents/some random document.pdf"')
+
+
     """
     is_platform_windows = lib_parameter.get_default_if_none(
         is_platform_windows, default=lib_platform.is_platform_windows)  # type: ignore
