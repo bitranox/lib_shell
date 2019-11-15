@@ -23,7 +23,7 @@ def get_l_commandline_from_pid(pid: int) -> List[str]:
     ... else:
     ...     process = subprocess.Popen(['notepad', './mäßig böse büßer', './müßige bärtige blödmänner'])
     ...     pid = process.pid
-    ...     assert get_l_commandline_from_psutil_process(pid=pid) == ['notepad', './mäßig böse büßer', './müßige bärtige blödmänner']
+    ...     assert get_l_commandline_from_pid(pid=pid) == ['notepad', './mäßig böse büßer', './müßige bärtige blödmänner']
     ...     psutil.Process(pid).kill()
 
     """
