@@ -3,7 +3,7 @@ import subprocess
 from typing import List
 
 # ext
-import psutil
+import psutil   # type: ignore
 
 # own
 import lib_list
