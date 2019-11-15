@@ -38,10 +38,16 @@ def get_l_commandline_from_psutil_process(process: psutil.Process) -> List[str]:
     if there are blanks in the parameters, psutil.cmdline does not work correctly on linux.
     see Error Report for PSUTIL : https://github.com/giampaolo/psutil/issues/1179
 
-    >>> if lib_platform.is_platform_posix:
+    >>> if lib_platform.is_platform_linux:
     ...     process = subprocess.Popen(['nano', './mäßig böse büßer', './müßige bärtige blödmänner'])
     ...     psutil_process=psutil.Process(process.pid)
     ...     assert get_l_commandline_from_psutil_process(psutil_process) == ['nano', './mäßig böse büßer', './müßige bärtige blödmänner']
+    ...     psutil_process.kill()
+    ... elif lib_platform.is_platform_darwin:
+    ...     process = subprocess.Popen(['open', '-a', 'TextEdit', './mäßig böse büßer', './müßige bärtige blödmänner'])
+    ...     psutil_process=psutil.Process(process.pid)
+    ...     get_l_commandline_from_psutil_process(psutil_process)
+    ...     assert get_l_commandline_from_psutil_process(psutil_process) == ['open', '-a', 'TextEdit', './mäßig böse büßer', './müßige bärtige blödmänner']
     ...     psutil_process.kill()
     ... else:
     ...     process = subprocess.Popen(['notepad', './mäßig böse büßer', './müßige bärtige blödmänner'])
@@ -50,7 +56,7 @@ def get_l_commandline_from_psutil_process(process: psutil.Process) -> List[str]:
     ...     psutil_process.kill()
 
     """
-    if lib_platform.is_platform_posix:
+    if lib_platform.is_platform_linux:
         with open('/proc/{pid}/cmdline'.format(pid=process.pid), mode='r') as proc_commandline:
             l_commands = proc_commandline.read().split('\x00')
             l_commands = lib_list.ls_del_empty_elements(l_commands)
