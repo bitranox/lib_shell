@@ -46,7 +46,6 @@ def get_l_commandline_from_psutil_process(process: psutil.Process) -> List[str]:
     ... elif lib_platform.is_platform_darwin:
     ...     process = subprocess.Popen(['open', '-a', 'TextEdit', './mäßig böse büßer', './müßige bärtige blödmänner'])
     ...     psutil_process=psutil.Process(process.pid)
-    ...     get_l_commandline_from_psutil_process(psutil_process)
     ...     assert get_l_commandline_from_psutil_process(psutil_process) == ['open', '-a', 'TextEdit', './mäßig böse büßer', './müßige bärtige blödmänner']
     ...     psutil_process.kill()
     ... else:
