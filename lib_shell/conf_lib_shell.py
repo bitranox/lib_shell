@@ -33,6 +33,13 @@ class ConfLibShell(object):
 
     @sudo_command.setter
     def sudo_command(self, value: str) -> None:
+        """
+        >>> conf_lib_shell = ConfLibShell()
+        >>> conf_lib_shell.sudo_command = 'wrong_sudo_command'
+        >>> assert not conf_lib_shell.sudo_command_exists
+        >>> conf_lib_shell.sudo_command = 'sudo'
+        >>> assert conf_lib_shell.sudo_command_exists
+        """
         self._sudo_command = str(value).strip()
         self.sudo_command_exists = get_sudo_command_exist(self._sudo_command)
 
