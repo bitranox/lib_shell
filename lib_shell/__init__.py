@@ -1,4 +1,5 @@
 import pathlib
+from .lib_commandline import *  # is needed !
 from .lib_shell import *
 
 
