@@ -1,6 +1,10 @@
 import pathlib
-from .lib_commandline import *  # is needed !
+
+from .conf_lib_shell import *
 from .lib_shell import *
+from .lib_shell_commandline import *
+from .lib_shell_log import *
+from .lib_shell_shlex import *
 
 
 def get_version() -> str:
