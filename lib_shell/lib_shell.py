@@ -106,26 +106,19 @@ def run_shell_ls_command(ls_command: List[str],
                          quiet: bool = False) -> ShellCommandResponse:
 
     """
-
     >>> log_settings = lib_shell_log.set_log_settings_to_level(level=logging.WARNING)
-
     >>> if lib_platform.is_platform_posix:
     ...     use_shell=False
     ... else:
     ...     use_shell=True
-
-
     >>> # test std operation
     >>> import lib_doctest_pycharm
     >>> response = run_shell_ls_command(['echo', 'test'], shell=use_shell, log_settings=log_settings)
     >>> assert 'test' in response.stdout
-
     >>> # test std operation without communication, no_wait
     >>> response = run_shell_ls_command(['echo', 'test'], shell=use_shell, log_settings=log_settings,
     ...                                 communicate=False, wait_finish=False)
     >>> assert response.returncode == 0
-
-
     """
 
     response = ShellCommandResponse()
