@@ -121,8 +121,8 @@ def quote_string(unquoted_string: str) -> str:
     """
     >>> assert quote_string('test') == '"test"'
     >>> assert quote_string('te"st') == '"te\\\\\\\\"st"'
-    >>> assert lib_shell_shlex.shlex_split_multi_platform('/home/user/test\\\\"test.sh') == ['/home/user/test"test.sh']
-    >>> assert lib_shell_shlex.shlex_split_multi_platform('"/home/user/test\\\\"test.sh"') == ['/home/user/test"test.sh']
+    >>> assert lib_shell_shlex.shlex_split_multi_platform('/home/user/test\\\\"test.sh', is_platform_windows=False) == ['/home/user/test"test.sh']
+    >>> assert lib_shell_shlex.shlex_split_multi_platform('"/home/user/test\\\\"test.sh"', is_platform_windows=False) == ['/home/user/test"test.sh']
     """
     unquoted_string = unquoted_string.replace('"', '\\\\"')
     quoted_string = '"' + unquoted_string + '"'
