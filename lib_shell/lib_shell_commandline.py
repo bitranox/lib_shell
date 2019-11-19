@@ -167,6 +167,7 @@ def get_l_command_variations(s_command: str) -> List[str]:
 def get_executable_file(l_command_variations: List[str], process: psutil.Process) -> str:
     """
     >>> if lib_platform.is_platform_linux:
+    ...     import getpass
     ...     import unittest
     ...     import importlib
     ...     import importlib.util
@@ -177,6 +178,7 @@ def get_executable_file(l_command_variations: List[str], process: psutil.Process
     ...     if not module_directory.endswith('/lib_shell/lib_shell'):
     ...         module_directory = module_directory + '/lib_shell'
     ...     os.chdir(module_directory)
+    ...     process = subprocess.Popen(['sudo', 'chown', '-R', getpass.getuser()+'.'+getpass.getuser(), module_directory])
     ...     try:
     ...         process = subprocess.Popen(['./test test/test test.sh', './test test/some_parameter', 'p1', 'p2'])
     ...         psutil_process=psutil.Process(process.pid)
