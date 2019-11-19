@@ -1,6 +1,5 @@
 # stdlib
 import pathlib
-import shutil
 import subprocess
 from typing import List
 
@@ -15,7 +14,6 @@ import lib_platform
 try:                                            # type: ignore # pragma: no cover
     # imports for local pytest
     from . import lib_shell_shlex               # type: ignore # pragma: no cover
-
 except (ImportError, ModuleNotFoundError):      # type: ignore # pragma: no cover
     # imports for doctest local
     import lib_shell_shlex                      # type: ignore # pragma: no cover
