@@ -64,12 +64,6 @@ def get_l_commandline_from_psutil_process(process: psutil.Process) -> List[str]:
     ...     psutil_process=psutil.Process(process.pid)
     ...     assert get_l_commandline_from_psutil_process(psutil_process) == ['/bin/bash', './test test/test test.sh', './test test/some_parameter', 'p1', 'p2']
     ...     psutil_process.kill()
-    ...     # test with blanks and quotes in directory and filename
-    ...     process = subprocess.Popen(['./test test/test " test.sh', './test test/some_parameter', 'p1', 'p2'])
-    ...     psutil_process=psutil.Process(process.pid)
-    ...     expected = ['/bin/bash', './test test/test " test.sh', './test test/some_parameter', 'p1', 'p2']
-    ...     assert get_l_commandline_from_psutil_process(psutil_process) == expected
-    ...     psutil_process.kill()
     ... elif lib_platform.is_platform_darwin:
     ...     process = subprocess.Popen(['open', '-a', 'TextEdit', './mäßig böse büßer', './müßige bärtige blödmänner'])
     ...     psutil_process=psutil.Process(process.pid)
@@ -108,14 +102,6 @@ def get_quoted_command(s_command: str, process: psutil.Process) -> str:
     ...     expected = '"./test test/test test.sh" "./test test/some_parameter" p1 p2'
     ...     assert get_quoted_command('./test test/test test.sh "./test test/some_parameter" p1 p2', psutil_process) == expected
     ...     psutil_process.kill()
-    ...     # test with quoting in Filename - we create that file with popen because shutil will fail
-    ...     subprocess.Popen(['cp','./test test/test test.sh', './test test/test " test.sh'])
-    ...     process = subprocess.Popen(['./test test/test " test.sh', './test test/some_parameter', 'p1', 'p2'])
-    ...     psutil_process=psutil.Process(process.pid)
-    ...     expected = '"./test test/test \\\\\\\\" test.sh" "./test test/some_parameter" p1 p2'
-    ...     assert get_quoted_command('./test test/test " test.sh "./test test/some_parameter" p1 p2', psutil_process) == expected
-    ...     psutil_process.kill()
-    ...     subprocess.Popen(['rm','-f', './test test/test " test.sh'])
 
     """
     if " " not in s_command:
@@ -184,12 +170,6 @@ def get_executable_file(l_command_variations: List[str], process: psutil.Process
     ...         psutil_process=psutil.Process(process.pid)
     ...         l_command_variations = get_l_command_variations('./test test/test test.sh "./test test/some_parameter" p1 p2')
     ...         assert get_executable_file(l_command_variations, psutil_process) == './test test/test test.sh'
-    ...         psutil_process.kill()
-    ...         # test with quoting in Filename
-    ...         process = subprocess.Popen(['./test test/test " test.sh', './test test/some_parameter', 'p1', 'p2'])
-    ...         psutil_process=psutil.Process(process.pid)
-    ...         l_command_variations = get_l_command_variations('./test test/test " test.sh "./test test/some_parameter" p1 p2')
-    ...         assert get_executable_file(l_command_variations, psutil_process) == './test test/test " test.sh'
     ...         l_command_variations = get_l_command_variations('./test test/not_existing.sh "./test test/some_parameter" p1 p2')
     ...         unittest.TestCase().assertRaises(RuntimeError, get_executable_file, l_command_variations, psutil_process)
     ...         psutil_process.kill()
