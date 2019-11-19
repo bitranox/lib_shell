@@ -53,15 +53,19 @@ def get_l_commandline_from_psutil_process(process: psutil.Process) -> List[str]:
     that happens also on some windows programs
 
     >>> # test the "good" commandline, '\x00' terminated and '\x00' separated
+    >>> import getpass
     >>> if lib_platform.is_platform_linux:
     ...     process = subprocess.Popen(['nano', './mäßig böse büßer', './müßige bärtige blödmänner'])
     ...     psutil_process=psutil.Process(process.pid)
     ...     assert get_l_commandline_from_psutil_process(psutil_process) == ['nano', './mäßig böse büßer', './müßige bärtige blödmänner']
     ...     psutil_process.kill()
     ...     # test with blanks in directory and filename - sudo needed for travis, otherwise Permission denied
-    ...     process = subprocess.Popen(['sudo', './test test/test test.sh', './test test/some_parameter', 'p1', 'p2'])
+    ...     # for travis we need to be owner - otherwise we get permission error
+    ...     proc_chown = subprocess.run(['sudo', 'chown', '-R', getpass.getuser() + '.' + getpass.getuser(), './test test'], check=True)
+    ...     proc_chmod = subprocess.run(['sudo', 'chmod', '-R', '777', './test test'], check=True)
+    ...     process = subprocess.Popen(['./test test/test test.sh', './test test/some_parameter', 'p1', 'p2'])
     ...     psutil_process=psutil.Process(process.pid)
-    ...     expected = ['sudo', './test test/test test.sh', './test test/some_parameter', 'p1', 'p2']
+    ...     expected = ['/bin/bash', './test test/test test.sh', './test test/some_parameter', 'p1', 'p2']
     ...     assert get_l_commandline_from_psutil_process(psutil_process) == expected
     ...     psutil_process.kill()
     ... elif lib_platform.is_platform_darwin:
@@ -99,6 +103,7 @@ def get_quoted_command(s_command: str, process: psutil.Process) -> str:
     >>> if lib_platform.is_platform_linux:
     ...     import importlib
     ...     import importlib.util
+    ...     import getpass
     ...     save_actual_directory = str(pathlib.Path().cwd().absolute())
     ...     # ok for doctest under pycharm:
     ...     module_directory = str(os.path.dirname(os.path.abspath(importlib.util.find_spec('lib_shell').origin)))
@@ -106,7 +111,9 @@ def get_quoted_command(s_command: str, process: psutil.Process) -> str:
     ...     if not module_directory.endswith('/lib_shell/lib_shell'):
     ...         module_directory = module_directory + '/lib_shell'
     ...     os.chdir(module_directory)
-    ...     # we need sudo here for travis
+    ...     # for travis we need to be owner - otherwise we get permission error
+    ...     proc_chown = subprocess.run(['sudo', 'chown', '-R', getpass.getuser() + '.' + getpass.getuser(), './test test'], check=True)
+    ...     proc_chmod = subprocess.run(['sudo', 'chmod', '-R', '777', './test test'], check=True)
     ...     process = subprocess.Popen(['./test test/test test.sh', './test test/some_parameter', 'p1', 'p2'])
     ...     psutil_process=psutil.Process(process.pid)
     ...     expected = '"./test test/test test.sh" "./test test/some_parameter" p1 p2'
@@ -180,8 +187,9 @@ def get_executable_file(l_command_variations: List[str], process: psutil.Process
     ...         module_directory = module_directory + '/lib_shell'
     ...     os.chdir(module_directory)
     ...     try:
-    ...         proc_chown = subprocess.run(['sudo', 'chown', '-R', getpass.getuser() + '.' + getpass.getuser(), module_directory], check=True)
-    ...         proc_chmod = subprocess.run(['sudo', 'chmod', '-R', '777', module_directory], check=True)
+    ...         # for travis we need to be owner - otherwise we get permission error
+    ...         proc_chown = subprocess.run(['sudo', 'chown', '-R', getpass.getuser() + '.' + getpass.getuser(), './test test'], check=True)
+    ...         proc_chmod = subprocess.run(['sudo', 'chmod', '-R', '777', './test test'], check=True)
     ...         process = subprocess.Popen(['./test test/test test.sh', './test test/some_parameter', 'p1', 'p2'])
     ...         psutil_process=psutil.Process(process.pid)
     ...         l_command_variations = get_l_command_variations('./test test/test test.sh "./test test/some_parameter" p1 p2')
