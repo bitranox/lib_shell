@@ -171,16 +171,17 @@ def get_executable_file(l_command_variations: List[str], process: psutil.Process
     ...     import unittest
     ...     import importlib
     ...     import importlib.util
+    ...     import time
     ...     save_actual_directory = str(pathlib.Path().cwd().absolute())
-    ...     # ok for doctest under pycharm:
+    ...     ## ok for doctest under pycharm:
     ...     module_directory = str(os.path.dirname(os.path.abspath(importlib.util.find_spec('lib_shell').origin)))
     ...     # for pytest:
     ...     if not module_directory.endswith('/lib_shell/lib_shell'):
     ...         module_directory = module_directory + '/lib_shell'
     ...     os.chdir(module_directory)
-    ...     pathlib.Path(module_directory).chmod(0o777)
     ...     try:
     ...         process = subprocess.Popen(['./test test/test test.sh', './test test/some_parameter', 'p1', 'p2'])
+    ...         time.sleep(1)
     ...         psutil_process=psutil.Process(process.pid)
     ...         l_command_variations = get_l_command_variations('./test test/test test.sh "./test test/some_parameter" p1 p2')
     ...         assert get_executable_file(l_command_variations, psutil_process) == './test test/test test.sh'
@@ -188,7 +189,8 @@ def get_executable_file(l_command_variations: List[str], process: psutil.Process
     ...         unittest.TestCase().assertRaises(RuntimeError, get_executable_file, l_command_variations, psutil_process)
     ...         psutil_process.kill()
     ...     finally:
-    ...         os.chdir(save_actual_directory)
+    ...         # os.chdir(save_actual_directory)
+    ...         pass
 
     """
     is_absolute_path = get_is_absolute_path(l_command_variations[0])
