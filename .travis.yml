@@ -48,20 +48,20 @@ matrix:
     - os: linux
       language: python
       python: '3.5'
-      env:
-        - CMDPREFIX="sudo"
+      before_install:
+          - export CMDPREFIX="sudo"
 
     - os: linux
       language: python
       python: '3.6'
-      env:
-        - CMDPREFIX="sudo"
+      before_install:
+          - export CMDPREFIX="sudo"
 
     - os: linux
       language: python
       python: '3.7'
-      env:
-        - CMDPREFIX="sudo"
+      before_install:
+          - export CMDPREFIX="sudo"
 
     - os: linux
       language: python
@@ -71,20 +71,19 @@ matrix:
           - export mypy_static_typecheck="True"
           - export build_docs="True"
           - export deploy_on_pypi="False"
-      env:
-        - CMDPREFIX="sudo"
+          - export CMDPREFIX="sudo"
 
     - os: linux
       language: python
       python: '3.8-dev'
-      env:
-        - CMDPREFIX="sudo"
+      before_install:
+          - export CMDPREFIX="sudo"
 
     - os: linux
       language: python
       python: 'pypy3'
-      env:
-        - CMDPREFIX="sudo"
+      before_install:
+          - export CMDPREFIX="sudo"
 
     - os: linux
       language: python
