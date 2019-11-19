@@ -54,6 +54,8 @@ def get_l_commandline_from_psutil_process(process: psutil.Process) -> List[str]:
 
     >>> # test the "good" commandline, '\x00' terminated and '\x00' separated
     >>> import getpass
+    >>> import importlib
+    >>> import importlib.util
     >>> if lib_platform.is_platform_linux:
     ...     process = subprocess.Popen(['nano', './mäßig böse büßer', './müßige bärtige blödmänner'])
     ...     psutil_process=psutil.Process(process.pid)
@@ -61,6 +63,13 @@ def get_l_commandline_from_psutil_process(process: psutil.Process) -> List[str]:
     ...     psutil_process.kill()
     ...     # test with blanks in directory and filename - sudo needed for travis, otherwise Permission denied
     ...     # for travis we need to be owner - otherwise we get permission error
+    ...     save_actual_directory = str(pathlib.Path().cwd().absolute())
+    ...     # ok for doctest under pycharm:
+    ...     module_directory = str(os.path.dirname(os.path.abspath(importlib.util.find_spec('lib_shell').origin)))
+    ...     # for pytest:
+    ...     if not module_directory.endswith('/lib_shell/lib_shell'):
+    ...         module_directory = module_directory + '/lib_shell'
+    ...     os.chdir(module_directory)
     ...     proc_chown = subprocess.run(['sudo', 'chown', '-R', getpass.getuser() + '.' + getpass.getuser(), './test test'], check=True)
     ...     proc_chmod = subprocess.run(['sudo', 'chmod', '-R', '777', './test test'], check=True)
     ...     process = subprocess.Popen(['./test test/test test.sh', './test test/some_parameter', 'p1', 'p2'])
@@ -68,6 +77,7 @@ def get_l_commandline_from_psutil_process(process: psutil.Process) -> List[str]:
     ...     expected = ['/bin/bash', './test test/test test.sh', './test test/some_parameter', 'p1', 'p2']
     ...     assert get_l_commandline_from_psutil_process(psutil_process) == expected
     ...     psutil_process.kill()
+    ...     os.chdir(save_actual_directory)
     ... elif lib_platform.is_platform_darwin:
     ...     process = subprocess.Popen(['open', '-a', 'TextEdit', './mäßig böse büßer', './müßige bärtige blödmänner'])
     ...     psutil_process=psutil.Process(process.pid)
