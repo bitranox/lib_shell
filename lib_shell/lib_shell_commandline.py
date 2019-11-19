@@ -1,4 +1,5 @@
 # stdlib
+import os
 import pathlib
 import subprocess
 from typing import List
@@ -156,8 +157,9 @@ def get_executable_file(l_command_variations: List[str], process: psutil.Process
     """
     >>> if lib_platform.is_platform_linux:
     ...     import unittest
-    ...     import os, importlib, importlib.util
-    ...     save_actual_directory = os.path.curdir
+    ...     import importlib
+    ...     import importlib.util
+    ...     save_actual_directory = str(pathlib.Path().cwd().absolute())
     ...     # ok for doctest under pycharm:
     ...     module_directory = str(os.path.dirname(os.path.abspath(importlib.util.find_spec('lib_shell').origin)))
     ...     # for pytest:
