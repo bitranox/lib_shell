@@ -97,11 +97,21 @@ def get_l_commandline_from_psutil_process(process: psutil.Process) -> List[str]:
 def get_quoted_command(s_command: str, process: psutil.Process) -> str:
     """ for the case the command executable contains blank, it would be interpreted as parameter
     >>> if lib_platform.is_platform_linux:
+    ...     import importlib
+    ...     import importlib.util
+    ...     save_actual_directory = str(pathlib.Path().cwd().absolute())
+    ...     # ok for doctest under pycharm:
+    ...     module_directory = str(os.path.dirname(os.path.abspath(importlib.util.find_spec('lib_shell').origin)))
+    ...     # for pytest:
+    ...     if not module_directory.endswith('/lib_shell/lib_shell'):
+    ...         module_directory = module_directory + '/lib_shell'
+    ...     os.chdir(module_directory)
     ...     process = subprocess.Popen(['./test test/test test.sh', './test test/some_parameter', 'p1', 'p2'])
     ...     psutil_process=psutil.Process(process.pid)
     ...     expected = '"./test test/test test.sh" "./test test/some_parameter" p1 p2'
     ...     assert get_quoted_command('./test test/test test.sh "./test test/some_parameter" p1 p2', psutil_process) == expected
     ...     psutil_process.kill()
+    ...     os.chdir(save_actual_directory)
 
     """
     if " " not in s_command:
