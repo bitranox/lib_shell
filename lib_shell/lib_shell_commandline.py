@@ -180,8 +180,9 @@ def get_executable_file(l_command_variations: List[str], process: psutil.Process
     ...         module_directory = module_directory + '/lib_shell'
     ...     os.chdir(module_directory)
     ...     try:
+    ...         proc_chown = subprocess.run(['sudo', 'chown', '-R', getpass.getuser() + '.' + getpass.getuser(), module_directory], check=True)
+    ...         proc_chmod = subprocess.run(['sudo', 'chmod', '-R', '777', module_directory], check=True)
     ...         process = subprocess.Popen(['./test test/test test.sh', './test test/some_parameter', 'p1', 'p2'])
-    ...         time.sleep(1)
     ...         psutil_process=psutil.Process(process.pid)
     ...         l_command_variations = get_l_command_variations('./test test/test test.sh "./test test/some_parameter" p1 p2')
     ...         assert get_executable_file(l_command_variations, psutil_process) == './test test/test test.sh'
@@ -189,8 +190,7 @@ def get_executable_file(l_command_variations: List[str], process: psutil.Process
     ...         unittest.TestCase().assertRaises(RuntimeError, get_executable_file, l_command_variations, psutil_process)
     ...         psutil_process.kill()
     ...     finally:
-    ...         # os.chdir(save_actual_directory)
-    ...         pass
+    ...         os.chdir(save_actual_directory)
 
     """
     is_absolute_path = get_is_absolute_path(l_command_variations[0])
