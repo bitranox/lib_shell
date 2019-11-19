@@ -178,8 +178,9 @@ def get_executable_file(l_command_variations: List[str], process: psutil.Process
     ...     if not module_directory.endswith('/lib_shell/lib_shell'):
     ...         module_directory = module_directory + '/lib_shell'
     ...     os.chdir(module_directory)
+    ...     pathlib.Path(module_directory).chmod(0o777)
     ...     try:
-    ...         process = subprocess.Popen(['/bin/bash', './test test/test test.sh', './test test/some_parameter', 'p1', 'p2'])
+    ...         process = subprocess.Popen(['./test test/test test.sh', './test test/some_parameter', 'p1', 'p2'])
     ...         psutil_process=psutil.Process(process.pid)
     ...         l_command_variations = get_l_command_variations('./test test/test test.sh "./test test/some_parameter" p1 p2')
     ...         assert get_executable_file(l_command_variations, psutil_process) == './test test/test test.sh'
