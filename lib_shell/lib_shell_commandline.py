@@ -59,9 +59,10 @@ def get_l_commandline_from_psutil_process(process: psutil.Process) -> List[str]:
     ...     assert get_l_commandline_from_psutil_process(psutil_process) == ['nano', './mäßig böse büßer', './müßige bärtige blödmänner']
     ...     psutil_process.kill()
     ...     # test with blanks in directory and filename - sudo needed for travis, otherwise Permission denied
-    ...     process = subprocess.Popen(['sudo', './test test/test test.sh', './test test/some_parameter', 'p1', 'p2'])
+    ...     process = subprocess.Popen(['./test test/test test.sh', './test test/some_parameter', 'p1', 'p2'])
     ...     psutil_process=psutil.Process(process.pid)
-    ...     expected = ['sudo', './test test/test test.sh', './test test/some_parameter', 'p1', 'p2']
+    ...     # we need sudo here for travis
+    ...     expected = ['/bin/bash', './test test/test test.sh', './test test/some_parameter', 'p1', 'p2']
     ...     assert get_l_commandline_from_psutil_process(psutil_process) == expected
     ...     psutil_process.kill()
     ... elif lib_platform.is_platform_darwin:
@@ -106,6 +107,7 @@ def get_quoted_command(s_command: str, process: psutil.Process) -> str:
     ...     if not module_directory.endswith('/lib_shell/lib_shell'):
     ...         module_directory = module_directory + '/lib_shell'
     ...     os.chdir(module_directory)
+    ...     # we need sudo here for travis
     ...     process = subprocess.Popen(['./test test/test test.sh', './test test/some_parameter', 'p1', 'p2'])
     ...     psutil_process=psutil.Process(process.pid)
     ...     expected = '"./test test/test test.sh" "./test test/some_parameter" p1 p2'
@@ -177,6 +179,7 @@ def get_executable_file(l_command_variations: List[str], process: psutil.Process
     ...         module_directory = module_directory + '/lib_shell'
     ...     os.chdir(module_directory)
     ...     try:
+    ...         # we need sudo here for travis
     ...         process = subprocess.Popen(['./test test/test test.sh', './test test/some_parameter', 'p1', 'p2'])
     ...         psutil_process=psutil.Process(process.pid)
     ...         l_command_variations = get_l_command_variations('./test test/test test.sh "./test test/some_parameter" p1 p2')
