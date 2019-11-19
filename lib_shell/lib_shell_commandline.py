@@ -1,5 +1,6 @@
 # stdlib
 import pathlib
+import shutil
 import subprocess
 from typing import List
 
@@ -80,9 +81,6 @@ def get_l_commandline_from_psutil_process(process: psutil.Process) -> List[str]:
     ...     assert get_l_commandline_from_psutil_process(psutil_process) == ['notepad', './mäßig böse büßer', './müßige bärtige blödmänner']
     ...     psutil_process.kill()
 
-    >>> assert lib_shell_shlex.shlex_split_multi_platform('"/home/user/test test.sh" p1 p2') == ['/home/user/test test.sh', 'p1', 'p2']
-    >>> # assert lib_shell_shlex.shlex_split_multi_platform('"/home/user/test \\\\" test.sh" p1 p2') == ['/home/user/test \\" test.sh', 'p1', 'p2']
-
     """
     if lib_platform.is_platform_linux:
         with open('/proc/{pid}/cmdline'.format(pid=process.pid), mode='r') as proc_commandline:
@@ -110,12 +108,14 @@ def get_quoted_command(s_command: str, process: psutil.Process) -> str:
     ...     expected = '"./test test/test test.sh" "./test test/some_parameter" p1 p2'
     ...     assert get_quoted_command('./test test/test test.sh "./test test/some_parameter" p1 p2', psutil_process) == expected
     ...     psutil_process.kill()
-    ...     # test with quoting in Filename
+    ...     # test with quoting in Filename - we create that file with popen because shutil will fail
+    ...     subprocess.Popen(['cp','./test test/test test.sh', './test test/test " test.sh'])
     ...     process = subprocess.Popen(['./test test/test " test.sh', './test test/some_parameter', 'p1', 'p2'])
     ...     psutil_process=psutil.Process(process.pid)
     ...     expected = '"./test test/test \\\\\\\\" test.sh" "./test test/some_parameter" p1 p2'
     ...     assert get_quoted_command('./test test/test " test.sh "./test test/some_parameter" p1 p2', psutil_process) == expected
     ...     psutil_process.kill()
+    ...     subprocess.Popen(['rm','-f', './test test/test " test.sh'])
 
     """
     if " " not in s_command:
