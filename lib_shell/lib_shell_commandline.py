@@ -57,8 +57,8 @@ def get_l_commandline_from_psutil_process(process: psutil.Process) -> List[str]:
     ...     psutil_process=psutil.Process(process.pid)
     ...     assert get_l_commandline_from_psutil_process(psutil_process) == ['nano', './mäßig böse büßer', './müßige bärtige blödmänner']
     ...     psutil_process.kill()
-    ...     # test with blanks in directory and filename
-    ...     process = subprocess.Popen(['./test test/test test.sh', './test test/some_parameter', 'p1', 'p2'])
+    ...     # test with blanks in directory and filename - sudo needed for travis, otherwise Permission denied
+    ...     process = subprocess.Popen(['sudo', './test test/test test.sh', './test test/some_parameter', 'p1', 'p2'])
     ...     psutil_process=psutil.Process(process.pid)
     ...     assert get_l_commandline_from_psutil_process(psutil_process) == ['/bin/bash', './test test/test test.sh', './test test/some_parameter', 'p1', 'p2']
     ...     psutil_process.kill()
