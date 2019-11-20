@@ -5,7 +5,7 @@ import subprocess
 from typing import List
 
 # ext
-import psutil   # type: ignore
+import psutil
 
 # own
 import lib_list
@@ -133,15 +133,28 @@ def get_quoted_command(s_command: str, process: psutil.Process) -> str:
 
     """
     if " " not in s_command:
-        quoted_command = s_command
+        return s_command
+
+    l_command_variations = get_l_command_variations(s_command)
+    s_executable_file = get_executable_file(l_command_variations, process)
+    s_parameters = s_command.split(s_executable_file, 1)[1]
+
+    # if there is no blank in the executable, the lexer will work anyway - but might fail if blank in parameters
+    if " " not in s_executable_file:
+        return s_command
+
+    # if s_command is just the executable with a blank in the absolute path
+    if get_is_absolute_path(s_command):
+        if pathlib.Path(s_command).exists():
+            return quote_string(s_command)
+
+    # if s_command is just the executable with a blank in the relative path
     else:
-        l_command_variations = get_l_command_variations(s_command)
-        s_executable_file = get_executable_file(l_command_variations, process)
-        s_parameters = s_command.split(s_executable_file, 1)[1]
-        if " " not in s_executable_file:    # if there is no blank in the executable, the lexer will work anyway
-            quoted_command = s_command
-        else:
-            quoted_command = quote_string(s_executable_file) + s_parameters
+        if (pathlib.Path(process.cwd()) / s_command).exists():
+            return quote_string(s_command)
+
+    # return "executable with blanks" parameter1 parameter2 parameter3
+    quoted_command = quote_string(s_executable_file) + s_parameters
     return quoted_command
 
 
@@ -149,8 +162,10 @@ def quote_string(unquoted_string: str) -> str:
     """
     >>> assert quote_string('test') == '"test"'
     >>> assert quote_string('te"st') == '"te\\\\\\\\"st"'
+    >>> assert quote_string("te\\"st") == '"te\\\\\\\\"st"'
     >>> assert lib_shell_shlex.shlex_split_multi_platform('/home/user/test\\\\"test.sh', is_platform_windows=False) == ['/home/user/test"test.sh']
     >>> assert lib_shell_shlex.shlex_split_multi_platform('"/home/user/test\\\\"test.sh"', is_platform_windows=False) == ['/home/user/test"test.sh']
+
     """
     unquoted_string = unquoted_string.replace('"', '\\\\"')
     quoted_string = '"' + unquoted_string + '"'
