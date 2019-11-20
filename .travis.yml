@@ -200,6 +200,7 @@ matrix:
           - wine_release="staging"
           - wine_python_version="python3"
 
+
     - os: osx
       language: sh
       name: "osX Python 3.8"
