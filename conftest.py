@@ -26,4 +26,5 @@ def pytest_cmdline_preparse(args):
     if sys.version_info <= (3, 5):
         args[:] = ["--pep8"] + args
     else:
+        # changed from --codestyle to --pycodestyle in 2019-11-20
         args[:] = ["--pycodestyle"] + args
