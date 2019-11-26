@@ -2,7 +2,7 @@
 import os
 import pathlib
 import subprocess
-from typing import List
+from typing import List, Union
 
 # ext
 import psutil   # type: ignore
@@ -103,7 +103,7 @@ def get_l_commandline_from_psutil_process(process: psutil.Process) -> List[str]:
     return l_commands
 
 
-def get_quoted_command(s_command: str, process: psutil.Process) -> str:
+def get_quoted_command(s_command: Union[str, pathlib.Path], process: psutil.Process) -> str:
     """ for the case the command executable contains blank, it would be interpreted as parameter
     >>> if lib_platform.is_platform_linux:
     ...     import importlib
@@ -111,17 +111,53 @@ def get_quoted_command(s_command: str, process: psutil.Process) -> str:
     ...     import getpass
     ...     save_actual_directory = str(pathlib.Path().cwd().absolute())
     ...     test_directory = lib_path.get_test_directory_path('lib_shell', test_directory_name='tests')
-    ...     os.chdir(str(test_directory))
     ...     # for travis we need to be owner - otherwise we get permission error
     ...     lib_path.make_test_directory_and_subdirs_fully_accessible_by_current_user(test_directory)
-    ...     process = subprocess.Popen(['./test test/test test.sh', './test test/some_parameter', 'p1', 'p2'])
-    ...     psutil_process=psutil.Process(process.pid)
-    ...     expected = '"./test test/test test.sh" "./test test/some_parameter" p1 p2'
-    ...     assert get_quoted_command('./test test/test test.sh "./test test/some_parameter" p1 p2', psutil_process) == expected
-    ...     psutil_process.kill()
-    ...     os.chdir(save_actual_directory)
+    ...     os.chdir(str(test_directory))
+    ...     try:
+    ...         # test relative path with blank in command and parameters
+    ...         process = subprocess.Popen(['./test test/test test.sh', './test test/some_parameter', 'p1', 'p2'])
+    ...         psutil_process=psutil.Process(process.pid)
+    ...         expected = '"./test test/test test.sh" "./test test/some_parameter" p1 p2'
+    ...         assert get_quoted_command('./test test/test test.sh "./test test/some_parameter" p1 p2', psutil_process) == expected
+    ...         psutil_process.kill()
+    ...         # test relative path with blank in command, without parameters
+    ...         process = subprocess.Popen(['./test test/test test.sh'])
+    ...         psutil_process=psutil.Process(process.pid)
+    ...         expected = '"./test test/test test.sh"'
+    ...         assert get_quoted_command('./test test/test test.sh', psutil_process) == expected
+    ...         psutil_process.kill()
+    ...         # test relative path without blank in command, without parameters
+    ...         process = subprocess.Popen(['./test.sh'])
+    ...         psutil_process=psutil.Process(process.pid)
+    ...         assert get_quoted_command('./test.sh', psutil_process) == './test.sh'
+    ...         psutil_process.kill()
+    ...         # test absolute path with blank in command and parameters
+    ...         absolute_exec_path = str(test_directory / 'test test/test test.sh')
+    ...         process = subprocess.Popen([str(test_directory / 'test test/test test.sh') , ' "./test test/some_parameter"', 'p1', 'p2'])
+    ...         psutil_process=psutil.Process(process.pid)
+    ...         expected = '/tests/test test/test test.sh" "./test test/some_parameter" p1 p2'
+    ...         assert get_quoted_command(absolute_exec_path + ' "./test test/some_parameter" p1 p2', psutil_process).endswith(expected)
+    ...         psutil_process.kill()
+    ...         # test absolute path with blank in command without parameters
+    ...         absolute_exec_path = str(test_directory / 'test test/test test.sh')
+    ...         process = subprocess.Popen([str(test_directory / 'test test/test test.sh')])
+    ...         psutil_process=psutil.Process(process.pid)
+    ...         expected = '/tests/test test/test test.sh"'
+    ...         assert get_quoted_command(absolute_exec_path, psutil_process).endswith(expected)
+    ...         psutil_process.kill()
+    ...         # test absolute path without blank in command without parameters
+    ...         absolute_exec_path = str(test_directory / 'test.sh')
+    ...         process = subprocess.Popen([str(test_directory / 'test.sh')])
+    ...         psutil_process=psutil.Process(process.pid)
+    ...         expected = '/tests/test.sh'
+    ...         assert get_quoted_command(absolute_exec_path, psutil_process).endswith(expected)
+    ...         psutil_process.kill()
+    ...     finally:
+    ...         os.chdir(save_actual_directory)
 
     """
+    s_command = str(s_command)
     if " " not in s_command:
         return s_command
 
@@ -196,15 +232,19 @@ def get_executable_file(l_command_variations: List[str], process: psutil.Process
     ...     import time
     ...     save_actual_directory = str(pathlib.Path().cwd().absolute())
     ...     test_directory = lib_path.get_test_directory_path('lib_shell', test_directory_name='tests')
+    ...     # for travis we need to be owner - otherwise we get permission error
+    ...     lib_path.make_test_directory_and_subdirs_fully_accessible_by_current_user(test_directory)
     ...     os.chdir(str(test_directory))
     ...     try:
-    ...         # for travis we need to be owner - otherwise we get permission error
-    ...         proc_chown = subprocess.run(['sudo', 'chown', '-R', getpass.getuser() + '.' + getpass.getuser(), './test test'], check=True)
-    ...         proc_chmod = subprocess.run(['sudo', 'chmod', '-R', '777', './test test'], check=True)
     ...         process = subprocess.Popen(['./test test/test test.sh', './test test/some_parameter', 'p1', 'p2'])
     ...         psutil_process=psutil.Process(process.pid)
+    ...         # test relative path
     ...         l_command_variations = get_l_command_variations('./test test/test test.sh "./test test/some_parameter" p1 p2')
     ...         assert get_executable_file(l_command_variations, psutil_process) == './test test/test test.sh'
+    ...         # test absolute path
+    ...         l_command_variations = get_l_command_variations(str(test_directory / 'test test/test test.sh') + ' "./test test/some_parameter" p1 p2')
+    ...         assert get_executable_file(l_command_variations, psutil_process).endswith('/test test/test test.sh')
+    ...         # test executable not existing, with blank in executable
     ...         l_command_variations = get_l_command_variations('./test test/not_existing.sh "./test test/some_parameter" p1 p2')
     ...         unittest.TestCase().assertRaises(RuntimeError, get_executable_file, l_command_variations, psutil_process)
     ...         psutil_process.kill()
