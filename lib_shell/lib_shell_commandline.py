@@ -153,6 +153,13 @@ def get_quoted_command(s_command: Union[str, pathlib.Path], process: psutil.Proc
     ...         expected = '/tests/test.sh'
     ...         assert get_quoted_command(absolute_exec_path, psutil_process).endswith(expected)
     ...         psutil_process.kill()
+    ...         # test absolute path without blank in command with parameters
+    ...         absolute_exec_path = str(test_directory / 'test.sh') + ' some parameter'
+    ...         process = subprocess.Popen([str(test_directory / 'test.sh'), 'some', 'parameter'])
+    ...         psutil_process=psutil.Process(process.pid)
+    ...         expected = '/tests/test.sh some parameter'
+    ...         assert get_quoted_command(absolute_exec_path, psutil_process).endswith(expected)
+    ...         psutil_process.kill()
     ...     finally:
     ...         os.chdir(save_actual_directory)
 
