@@ -5,10 +5,11 @@ import subprocess
 from typing import List
 
 # ext
-import psutil
+import psutil   # type: ignore
 
 # own
 import lib_list
+import lib_path
 import lib_platform
 
 # PROJ
@@ -61,17 +62,11 @@ def get_l_commandline_from_psutil_process(process: psutil.Process) -> List[str]:
     ...     psutil_process=psutil.Process(process.pid)
     ...     assert get_l_commandline_from_psutil_process(psutil_process) == ['nano', './mäßig böse büßer', './müßige bärtige blödmänner']
     ...     psutil_process.kill()
-    ...     # test with blanks in directory and filename - sudo needed for travis, otherwise Permission denied
-    ...     # for travis we need to be owner - otherwise we get permission error
     ...     save_actual_directory = str(pathlib.Path().cwd().absolute())
-    ...     # ok for doctest under pycharm:
-    ...     module_directory = str(os.path.dirname(os.path.abspath(importlib.util.find_spec('lib_shell').origin)))
-    ...     # for pytest:
-    ...     if not module_directory.endswith('/lib_shell/lib_shell'):
-    ...         module_directory = module_directory + '/lib_shell'
-    ...     os.chdir(module_directory)
-    ...     proc_chown = subprocess.run(['sudo', 'chown', '-R', getpass.getuser() + '.' + getpass.getuser(), './test test'], check=True)
-    ...     proc_chmod = subprocess.run(['sudo', 'chmod', '-R', '777', './test test'], check=True)
+    ...     test_directory = lib_path.get_test_directory_path('lib_shell', test_directory_name='tests')
+    ...     os.chdir(str(test_directory))
+    ...     # for travis we need to be owner - otherwise we get permission error
+    ...     lib_path.make_test_directory_and_subdirs_fully_accessible_by_current_user(test_directory)
     ...     process = subprocess.Popen(['./test test/test test.sh', './test test/some_parameter', 'p1', 'p2'])
     ...     psutil_process=psutil.Process(process.pid)
     ...     expected = ['/bin/bash', './test test/test test.sh', './test test/some_parameter', 'p1', 'p2']
@@ -115,15 +110,10 @@ def get_quoted_command(s_command: str, process: psutil.Process) -> str:
     ...     import importlib.util
     ...     import getpass
     ...     save_actual_directory = str(pathlib.Path().cwd().absolute())
-    ...     # ok for doctest under pycharm:
-    ...     module_directory = str(os.path.dirname(os.path.abspath(importlib.util.find_spec('lib_shell').origin)))
-    ...     # for pytest:
-    ...     if not module_directory.endswith('/lib_shell/lib_shell'):
-    ...         module_directory = module_directory + '/lib_shell'
-    ...     os.chdir(module_directory)
+    ...     test_directory = lib_path.get_test_directory_path('lib_shell', test_directory_name='tests')
+    ...     os.chdir(str(test_directory))
     ...     # for travis we need to be owner - otherwise we get permission error
-    ...     proc_chown = subprocess.run(['sudo', 'chown', '-R', getpass.getuser() + '.' + getpass.getuser(), './test test'], check=True)
-    ...     proc_chmod = subprocess.run(['sudo', 'chmod', '-R', '777', './test test'], check=True)
+    ...     lib_path.make_test_directory_and_subdirs_fully_accessible_by_current_user(test_directory)
     ...     process = subprocess.Popen(['./test test/test test.sh', './test test/some_parameter', 'p1', 'p2'])
     ...     psutil_process=psutil.Process(process.pid)
     ...     expected = '"./test test/test test.sh" "./test test/some_parameter" p1 p2'
@@ -205,12 +195,8 @@ def get_executable_file(l_command_variations: List[str], process: psutil.Process
     ...     import importlib.util
     ...     import time
     ...     save_actual_directory = str(pathlib.Path().cwd().absolute())
-    ...     ## ok for doctest under pycharm:
-    ...     module_directory = str(os.path.dirname(os.path.abspath(importlib.util.find_spec('lib_shell').origin)))
-    ...     # for pytest:
-    ...     if not module_directory.endswith('/lib_shell/lib_shell'):
-    ...         module_directory = module_directory + '/lib_shell'
-    ...     os.chdir(module_directory)
+    ...     test_directory = lib_path.get_test_directory_path('lib_shell', test_directory_name='tests')
+    ...     os.chdir(str(test_directory))
     ...     try:
     ...         # for travis we need to be owner - otherwise we get permission error
     ...         proc_chown = subprocess.run(['sudo', 'chown', '-R', getpass.getuser() + '.' + getpass.getuser(), './test test'], check=True)

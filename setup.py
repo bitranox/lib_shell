@@ -15,6 +15,7 @@ required = ['psutil',
             'lib_list @ git+https://github.com/bitranox/lib_list.git',
             'lib_log_utils @ git+https://github.com/bitranox/lib_log_utils.git',
             'lib_parameter @ git+https://github.com/bitranox/lib_parameter.git',
+            'lib_path @ git+https://github.com/bitranox/lib_path.git',
             'lib_platform @ git+https://github.com/bitranox/lib_platform.git']      # type: List
 
 
