@@ -95,7 +95,7 @@ def get_l_commandline_from_psutil_process(process: psutil.Process) -> List[str]:
     l_commands = lib_list.ls_del_empty_elements(l_commands)
     if len(l_commands) == 1:                                                                # pragma: no cover
         s_command = l_commands[0]
-        # for the case the command executable contains blank, it would be interpreted as parameter
+        # for the case the command executable contains blank, the part after the blank would be interpreted as parameter
         # for instance "/home/user/test test.sh parameter1 parameter2"
         if lib_platform.is_platform_linux:
             s_command = get_quoted_command(s_command, process)
