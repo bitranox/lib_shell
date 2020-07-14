@@ -104,7 +104,7 @@ def log_results(s_command: str, stdout: str, stderr: str, returncode: int, wait_
             stderr = delete_empty_lines(stderr)
             logger.log(level=log_level_stderr, msg='shell stderr:\n{}'.format(stderr))
 
-    lib_log_utils.logger_flush_all_handlers()
+    lib_log_utils.log_handlers.logger_flush_all_handlers()
 
 
 def delete_empty_lines(text: str) -> str:
