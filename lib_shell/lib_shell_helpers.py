@@ -24,7 +24,7 @@ def prepend_sudo_command(l_command: List[str]) -> List[str]:
 
     """
     if not conf_lib_shell.sudo_command_exists:
-        raise RuntimeError('the sudo command "{sudo_command}" does not exist'.format(sudo_command=conf_lib_shell.sudo_command))
+        raise RuntimeError(f'the sudo command "{conf_lib_shell.sudo_command}" does not exist')
     l_command = [conf_lib_shell.sudo_command] + l_command
     return l_command
 

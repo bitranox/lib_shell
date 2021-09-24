@@ -65,7 +65,7 @@ def report_thread_not_closed(process: Union[subprocess.Popen, subprocess.Complet
 
     cmd_args = [str(cmd_arg) for cmd_arg in process.args]   # type: List[str]
     command = ' '.join(cmd_args)
-    error_msg = 'stalled I/O thread for "{pipe_name}" on command "{command}"'.format(pipe_name=pipe_name, command=command)
+    error_msg = f'stalled I/O thread for "{pipe_name}" on command "{command}"'
     error_msg = error_msg + ' - consider to call it without option pass_stdout_stderr_to_sys'
     logger.error(error_msg)
 

@@ -24,7 +24,7 @@ entry_points = dict()                                                           
 
 
 def get_version(dist_directory: str) -> str:
-    with open(str(pathlib.Path(__file__).parent / '{dist_directory}/version.txt'.format(dist_directory=dist_directory)), mode='r') as version_file:
+    with open(str(pathlib.Path(__file__).parent / f'{dist_directory}/version.txt'), mode='r') as version_file:
         version = version_file.readline()
     return version
 
@@ -76,7 +76,7 @@ if path_readme.exists():
 
 setup(name=package_name,
       version=get_version(package_name),
-      url='https://github.com/bitranox/{package_name}'.format(package_name=package_name),
+      url=f'https://github.com/bitranox/{package_name}',
       packages=[package_name],
       package_data={package_name: ['version.txt']},
       description=package_name,

@@ -86,7 +86,7 @@ def get_l_commandline_from_psutil_process(process: psutil.Process) -> List[str]:
 
     """
     if lib_platform.is_platform_linux:
-        with open('/proc/{pid}/cmdline'.format(pid=process.pid), mode='r') as proc_commandline:
+        with open(f'/proc/{process.pid}/cmdline', mode='r') as proc_commandline:
             l_commands = proc_commandline.read().split('\x00')
     else:
         l_commands = process.cmdline()
@@ -268,4 +268,4 @@ def get_executable_file(l_command_variations: List[str], process: psutil.Process
             executable_path = pathlib.Path(process.cwd()) / command_variation
             if executable_path.exists():
                 return command_variation
-    raise RuntimeError('can not parse the command line, maybe the executable not present anymore: "{cmdline}"'.format(cmdline=l_command_variations[0]))
+    raise RuntimeError(f'can not parse the command line, maybe the executable not present anymore: "{l_command_variations[0]}"')

@@ -58,7 +58,7 @@ def get_sudo_command_exist(sudo_command: str = 'sudo') -> bool:
     if lib_platform.is_platform_windows:
         return False
     try:
-        ls_command = ['bash', '-c', 'command -v {sudo_command}'.format(sudo_command=sudo_command)]
+        ls_command = ['bash', '-c', f'command -v {sudo_command}']
         subprocess.check_output(ls_command, stderr=subprocess.PIPE)
         return True
     except subprocess.CalledProcessError:
