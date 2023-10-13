@@ -303,7 +303,7 @@ def _run_shell_ls_command_one_try(ls_command: List[str],
         communicate = False
 
     if communicate:
-        encoding = lib_detect_encoding.get_encoding()
+        encoding = lib_detect_encoding.get_system_preferred_encoding()
 
         if pass_stdout_stderr_to_sys:
             # Read data from stdout and stderr and passes it to the caller, until end-of-file is reached. Wait for process to terminate.
@@ -312,13 +312,13 @@ def _run_shell_ls_command_one_try(ls_command: List[str],
             # Send data to stdin. Read data from stdout and stderr, until end-of-file is reached. Wait for process to terminate.
             stdout, stderr = my_process.communicate()
 
-        encoding = lib_detect_encoding.detect_encoding(stdout + stderr)
+        encoding = lib_detect_encoding.get_file_encoding(stdout + stderr)
         try:
             stdout_str = stdout.decode(encoding)
             stderr_str = stderr.decode(encoding)
-        # on Wine we might get Windows encoded response
+        # on Wine, we might get Windows encoded response
         except UnicodeDecodeError:
-            encoding = lib_detect_encoding.get_encoding_windows()
+            encoding = lib_detect_encoding.get_system_preferred_encoding_windows()
             stdout_str = stdout.decode(encoding)
             stderr_str = stderr.decode(encoding)
         returncode = my_process.returncode
