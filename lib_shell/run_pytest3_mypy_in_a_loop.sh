@@ -5,13 +5,13 @@ export SUDO_ASKPASS="${sudo_askpass}"
 export NO_AT_BRIDGE=1  # get rid of (ssh-askpass:25930): dbind-WARNING **: 18:46:12.019: Couldn't register with accessibility bus: Did not receive a reply.
 
 function install_or_update_lib_bash {
-    if [[ ! -f /usr/local/lib_bash/install_or_update.sh ]]; then
+    if [[ ! -f /usr/local/lib_bash/lib_bash.sh ]]; then
         "$(command -v sudo 2>/dev/null)" git clone https://github.com/bitranox/lib_bash.git /usr/local/lib_bash 2>/dev/null
         "$(command -v sudo 2>/dev/null)" chmod -R 0755 /usr/local/lib_bash 2>/dev/null
         "$(command -v sudo 2>/dev/null)" chmod -R +x /usr/local/lib_bash/*.sh 2>/dev/null
-        "$(command -v sudo 2>/dev/null)" /usr/local/lib_bash/install_or_update.sh 2>/dev/null
+        "$(command -v sudo 2>/dev/null)" /usr/local/lib_bash/lib_bash.sh 2>/dev/null
     else
-        /usr/local/lib_bash/install_or_update.sh
+        /usr/local/lib_bash/lib_bash.sh
     fi
 }
 
