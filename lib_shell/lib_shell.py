@@ -1,6 +1,5 @@
 # STDLIB
 import locale
-import logging
 import os
 import subprocess
 from typing import List, Optional, Tuple

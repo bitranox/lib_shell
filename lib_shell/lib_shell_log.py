@@ -1,9 +1,14 @@
-# STDLIB
+# stdlib
 import logging
+
+# ENSURE LOGGER - shoud be already initialized by caller
+import lib_log_rich.runtime
+import ensure_richlog
+ensure_richlog.ensure_richlog(service="lib_shell_log", environment="submodule", queue_enabled=True)
+log: lib_log_rich.runtime.LoggerProxy = lib_log_rich.get("lib_shell_log")
 
 # OWN
 import lib_list
-import lib_log_utils
 
 
 class RunShellCommandLogSettings(object):
@@ -76,7 +81,6 @@ def set_log_settings_to_level(
 
 
 def log_results(s_command: str, stdout: str, stderr: str, returncode: int, wait_finish: bool, log_settings: RunShellCommandLogSettings) -> None:
-    logger = logging.getLogger()
     if returncode:
         log_level_command = log_settings.log_level_command_on_error
         log_level_stderr = log_settings.log_level_stderr_on_error
@@ -91,20 +95,18 @@ def log_results(s_command: str, stdout: str, stderr: str, returncode: int, wait_
     else:
         if wait_finish:
             if returncode:
-                logger.log(level=log_level_command, msg=f'shell[ERROR#{returncode}]: {s_command}')
+                log._log(level=log_level_command, message=f'shell[ERROR#{returncode}]: {s_command}')
             else:
-                logger.log(level=log_level_command, msg=f'shell[OK]: {s_command}')
+                log._log(level=log_level_command, message=f'shell[OK]: {s_command}')
         else:
-            logger.log(level=log_level_command, msg=f'shell[Fire and Forget]: {s_command}')
+            log._log(level=log_level_command, message=f'shell[Fire and Forget]: {s_command}')
 
         if stdout:
             stdout = delete_empty_lines(stdout)
-            logger.log(level=log_level_stdout, msg=f'shell stdout:\n{stdout}')
+            log._log(level=log_level_stdout, message=f'shell stdout:\n{stdout}')
         if stderr:
             stderr = delete_empty_lines(stderr)
-            logger.log(level=log_level_stderr, msg=f'shell stderr:\n{stderr}')
-
-    lib_log_utils.log_handlers.logger_flush_all_handlers()
+            log._log(level=log_level_stderr, message=f'shell stderr:\n{stderr}')
 
 
 def delete_empty_lines(text: str) -> str:
