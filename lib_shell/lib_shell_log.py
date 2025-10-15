@@ -8,7 +8,7 @@ ensure_richlog.ensure_richlog(service="lib_shell_log", environment="submodule", 
 log: lib_log_rich.runtime.LoggerProxy = lib_log_rich.get("lib_shell_log")
 
 # OWN
-import lib_list
+import btx_lib_list
 
 
 class RunShellCommandLogSettings(object):
@@ -111,7 +111,7 @@ def log_results(s_command: str, stdout: str, stderr: str, returncode: int, wait_
 
 def delete_empty_lines(text: str) -> str:
     ls_lines = text.split('\n')
-    ls_lines = lib_list.ls_strip_elements(ls_lines)
-    ls_lines = lib_list.ls_del_empty_elements(ls_lines)
+    ls_lines = btx_lib_list.ls_strip_elements(ls_lines)
+    ls_lines = btx_lib_list.ls_del_empty_elements(ls_lines)
     text_result = '\n'.join(ls_lines)
     return text_result

@@ -19,7 +19,7 @@ def prepend_sudo_command(l_command: List[str]) -> List[str]:
     """ Prepends Sudo Command to the List of commands
 
     >>> l_command=['test']
-    >>> if lib_platform.is_platform_posix:
+    >>> if lib_platform.get_is_platform_posix():
     ...     assert prepend_sudo_command(l_command) == ['sudo', 'test']
 
     """
@@ -32,7 +32,7 @@ def prepend_sudo_command(l_command: List[str]) -> List[str]:
 def prepend_run_as_user_command(l_command: List[str], user: str = '') -> List[str]:
     """
 
-    >>> if lib_platform.is_platform_posix:
+    >>> if lib_platform.get_is_platform_posix():
     ...     user = get_current_username()
     ...     l_command = ['echo', '"test"']
     ...     assert prepend_run_as_user_command(l_command=l_command, user=user) == ['echo', '"test"']

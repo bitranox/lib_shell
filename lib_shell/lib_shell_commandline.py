@@ -8,7 +8,7 @@ from typing import List, Union
 import psutil   # type: ignore
 
 # own
-import lib_list
+import btx_lib_list
 import lib_path
 import lib_platform
 
@@ -26,7 +26,7 @@ def get_l_commandline_from_pid(pid: int) -> List[str]:
     if there are blanks in the parameters, psutil.cmdline does not work correctly on linux.
     see Error Report for PSUTIL : https://github.com/giampaolo/psutil/issues/1179
 
-    >>> if lib_platform.is_platform_posix:
+    >>> if lib_platform.get_is_platform_posix():
     ...     process = subprocess.Popen(['nano', './mäßig böse büßer', './müßige bärtige blödmänner'])
     ...     pid = process.pid
     ...     assert get_l_commandline_from_pid(pid=pid) == ['nano', './mäßig böse büßer', './müßige bärtige blödmänner']
@@ -57,7 +57,7 @@ def get_l_commandline_from_psutil_process(process: psutil.Process) -> List[str]:
     >>> import getpass
     >>> import importlib
     >>> import importlib.util
-    >>> if lib_platform.is_platform_linux:
+    >>> if lib_platform.get_is_platform_linux():
     ...     process = subprocess.Popen(['nano', './mäßig böse büßer', './müßige bärtige blödmänner'])
     ...     psutil_process=psutil.Process(process.pid)
     ...     assert get_l_commandline_from_psutil_process(psutil_process) == ['nano', './mäßig böse büßer', './müßige bärtige blödmänner']
@@ -73,7 +73,7 @@ def get_l_commandline_from_psutil_process(process: psutil.Process) -> List[str]:
     ...     assert get_l_commandline_from_psutil_process(psutil_process) == expected
     ...     psutil_process.kill()
     ...     os.chdir(save_actual_directory)
-    ... elif lib_platform.is_platform_darwin:
+    ... elif lib_platform.get_is_platform_darwin():
     ...     process = subprocess.Popen(['open', '-a', 'TextEdit', './mäßig böse büßer', './müßige bärtige blödmänner'])
     ...     psutil_process=psutil.Process(process.pid)
     ...     assert get_l_commandline_from_psutil_process(psutil_process) == ['open', '-a', 'TextEdit', './mäßig böse büßer', './müßige bärtige blödmänner']
@@ -85,19 +85,19 @@ def get_l_commandline_from_psutil_process(process: psutil.Process) -> List[str]:
     ...     psutil_process.kill()
 
     """
-    if lib_platform.is_platform_linux:
+    if lib_platform.get_is_platform_linux():
         with open(f'/proc/{process.pid}/cmdline', mode='r') as proc_commandline:
             l_commands = proc_commandline.read().split('\x00')
     else:
         l_commands = process.cmdline()
 
-    l_commands = lib_list.ls_strip_elements(l_commands)
-    l_commands = lib_list.ls_del_empty_elements(l_commands)
+    l_commands = btx_lib_list.ls_strip_elements(l_commands)
+    l_commands = btx_lib_list.ls_del_empty_elements(l_commands)
     if len(l_commands) == 1:                                                                # pragma: no cover
         s_command = l_commands[0]
         # for the case the command executable contains blank, the part after the blank would be interpreted as parameter
         # for instance "/home/user/test test.sh parameter1 parameter2"
-        if lib_platform.is_platform_linux:
+        if lib_platform.get_is_platform_linux():
             s_command = get_quoted_command(s_command, process)
         l_commands = lib_shell_shlex.shlex_split_multi_platform(s_command)                  # pragma: no cover
     return l_commands
@@ -105,7 +105,7 @@ def get_l_commandline_from_psutil_process(process: psutil.Process) -> List[str]:
 
 def get_quoted_command(s_command: Union[str, pathlib.Path], process: psutil.Process) -> str:
     """ for the case the command executable contains blank, it would be interpreted as parameter
-    >>> if lib_platform.is_platform_linux:
+    >>> if lib_platform.get_is_platform_linux():
     ...     import importlib
     ...     import importlib.util
     ...     import getpass
@@ -231,7 +231,7 @@ def get_l_command_variations(s_command: str) -> List[str]:
 
 def get_executable_file(l_command_variations: List[str], process: psutil.Process) -> str:
     """
-    >>> if lib_platform.is_platform_linux:
+    >>> if lib_platform.get_is_platform_linux():
     ...     import getpass
     ...     import unittest
     ...     import importlib

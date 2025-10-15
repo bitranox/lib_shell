@@ -42,7 +42,7 @@ def get_sudo_command_exist(sudo_command: str = 'sudo') -> bool:
 
     >>> import unittest
 
-    >>> if lib_platform.is_platform_posix:
+    >>> if lib_platform.get_is_platform_posix():
     ...     assert get_sudo_command_exist() == True
     ...     conf_lib_shell = ConfLibShell()
     ...     conf_lib_shell.sudo_command = 'wrong_sudo_command'
@@ -55,7 +55,7 @@ def get_sudo_command_exist(sudo_command: str = 'sudo') -> bool:
 
     """
 
-    if lib_platform.is_platform_windows:
+    if lib_platform.get_is_platform_windows():
         return False
     try:
         ls_command = ['bash', '-c', f'command -v {sudo_command}']

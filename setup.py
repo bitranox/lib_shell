@@ -12,7 +12,7 @@ except ImportError:
 package_name = 'lib_shell'                                                          # type: str
 required = ['psutil',
             'lib_detect_encoding @ git+https://github.com/bitranox/lib_detect_encoding.git',
-            'lib_list @ git+https://github.com/bitranox/lib_list.git',
+            'btx_lib_list',
             'lib_log_utils @ git+https://github.com/bitranox/lib_log_utils.git',
             'lib_parameter @ git+https://github.com/bitranox/lib_parameter.git',
             'lib_path @ git+https://github.com/bitranox/lib_path.git',

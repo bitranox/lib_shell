@@ -56,7 +56,7 @@ def run_shell_command(command: str,
     >>> response = run_shell_command('echo test', shell=False)
     >>> assert 'test' in response.stdout
 
-    >>> if lib_platform.is_platform_posix:
+    >>> if lib_platform.get_is_platform_posix():
     ...     response = run_shell_command('echo test', use_sudo=True)
     ...     assert 'test' in response.stdout
     ... else:
@@ -70,7 +70,7 @@ def run_shell_command(command: str,
 
     command = command.strip()
 
-    if shell and lib_platform.is_platform_posix:
+    if shell and lib_platform.get_is_platform_posix():
         # when shell = True we need to pass the command in one string
         ls_command = [command]
     else:
@@ -106,7 +106,7 @@ def run_shell_ls_command(ls_command: List[str],
 
     """
     >>> log_settings = lib_shell_log.set_log_settings_to_level(level=logging.WARNING)
-    >>> if lib_platform.is_platform_posix:
+    >>> if lib_platform.get_is_platform_posix():
     ...     use_shell=False
     ... else:
     ...     use_shell=True
@@ -161,21 +161,21 @@ def _run_shell_ls_command_one_try(ls_command: List[str],
     >>> import unittest
 
     >>> # test std operation, shell=True
-    >>> if lib_platform.is_platform_posix:
+    >>> if lib_platform.get_is_platform_posix():
     ...     response = run_shell_ls_command(['echo', 'test'], shell=True)
     ... else:
     ...     response = run_shell_ls_command(['cmd', '/C', 'echo test'], shell=True)
     >>> assert 'test' in response.stdout
 
     >>> # test std operation, shell=True, quiet=True
-    >>> if lib_platform.is_platform_posix:
+    >>> if lib_platform.get_is_platform_posix():
     ...     response = run_shell_ls_command(['echo', 'test'], shell=True, quiet=True)
     ... else:
     ...     response = run_shell_ls_command(['cmd', '/C', 'echo test'], shell=True, quiet=True)
     >>> assert 'test' in response.stdout
 
     >>> # test std operation, start_new_session=True
-    >>> if lib_platform.is_platform_posix:
+    >>> if lib_platform.get_is_platform_posix():
     ...     response = run_shell_ls_command(['echo', 'test'], shell=True, start_new_session=True)
     ... else:
     ...     response = run_shell_ls_command(['cmd', '/C', 'echo test'], shell=True, start_new_session=True)
@@ -183,14 +183,14 @@ def _run_shell_ls_command_one_try(ls_command: List[str],
 
 
     >>> # test std operation, shell=False
-    >>> if lib_platform.is_platform_posix:
+    >>> if lib_platform.get_is_platform_posix():
     ...     response = run_shell_ls_command(['echo', 'test'], shell=False)
     ... else:
     ...     response = run_shell_ls_command(['cmd', '/C', 'echo test'], shell=False)
     >>> assert 'test' in response.stdout
 
     >>> # test pass stdout to sys, shell=True
-    >>> if lib_platform.is_platform_posix:
+    >>> if lib_platform.get_is_platform_posix():
     ...     response = run_shell_ls_command(['echo', 'test'],
     ...                                     shell=True,
     ...                                     pass_stdout_stderr_to_sys=True)  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
@@ -202,7 +202,7 @@ def _run_shell_ls_command_one_try(ls_command: List[str],
     >>> assert 'test' in response.stdout
 
     >>> # test pass stdout to sys, shell=False
-    >>> if lib_platform.is_platform_posix:
+    >>> if lib_platform.get_is_platform_posix():
     ...     response = run_shell_ls_command(['echo', 'test'],
     ...                                     shell=False,
     ...                                     pass_stdout_stderr_to_sys=True)  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
@@ -214,15 +214,15 @@ def _run_shell_ls_command_one_try(ls_command: List[str],
     >>> assert 'test' in response.stdout
 
     >>> # test pass stderr to sys - without raising Exception
-    >>> if lib_platform.is_platform_posix:
+    >>> if lib_platform.get_is_platform_posix():
     ...     response = run_shell_ls_command(['ls', '--unknown'],
     ...                pass_stdout_stderr_to_sys=True,
     ...                raise_on_returncode_not_zero=False)  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
-    ...     if lib_platform.is_platform_darwin:
+    ...     if lib_platform.get_is_platform_darwin():
     ...         assert 'ls: illegal option' in response.stderr
     ...     else:
     ...         assert '--unknown' in response.stderr
-    ... elif lib_platform.is_platform_windows:
+    ... elif lib_platform.get_is_platform_windows():
     ...     response = run_shell_ls_command(['dir', '/unknown'],
     ...                shell=True,
     ...                pass_stdout_stderr_to_sys=True,
@@ -231,34 +231,34 @@ def _run_shell_ls_command_one_try(ls_command: List[str],
                    ('Das System kann den angegebenen Pfad nicht finden' in response.stderr)
 
     >>> # test pass stderr to sys - raising Exception
-    >>> if lib_platform.is_platform_posix:
+    >>> if lib_platform.get_is_platform_posix():
     ...     unittest.TestCase().assertRaises(subprocess.CalledProcessError,
     ...         run_shell_ls_command, ['ls', '--unknown'], pass_stdout_stderr_to_sys=True, shell=True)
     ...     unittest.TestCase().assertRaises(subprocess.CalledProcessError,
     ...         run_shell_ls_command, ['ls', '--unknown'], pass_stdout_stderr_to_sys=True, shell=False)
 
-    >>> if lib_platform.is_platform_windows:
+    >>> if lib_platform.get_is_platform_windows():
     ...     unittest.TestCase().assertRaises(subprocess.CalledProcessError,
     ...         run_shell_ls_command, ['dir', '/unknown'], pass_stdout_stderr_to_sys=True, shell=True)
     ...     unittest.TestCase().assertRaises(subprocess.CalledProcessError,
     ...         run_shell_ls_command, ['cmd','/C', 'dir /unknown'], pass_stdout_stderr_to_sys=True, shell=False)
 
     >>> # test std operation without communication, shell=True
-    >>> if lib_platform.is_platform_posix:
+    >>> if lib_platform.get_is_platform_posix():
     ...     response = run_shell_ls_command(['echo', 'test'], shell=True, communicate=False)
     ... else:
     ...     response = run_shell_ls_command(['cmd', '/C', 'echo test'], shell=True, communicate=False)
     >>> assert response.returncode == 0
 
     >>> # test std operation without communication, shell=False
-    >>> if lib_platform.is_platform_posix:
+    >>> if lib_platform.get_is_platform_posix():
     ...     response = run_shell_ls_command(['echo', 'test'], shell=False, communicate=False)
     ... else:
     ...     response = run_shell_ls_command(['cmd', '/C', 'echo test'], shell=False, communicate=False)
     >>> assert response.returncode == 0
 
     >>> # test std operation without communication, no_wait; shell=True
-    >>> if lib_platform.is_platform_posix:
+    >>> if lib_platform.get_is_platform_posix():
     ...     response = run_shell_ls_command(['echo', 'test'], shell=True, communicate=False, wait_finish=False)
     ... else:
     ...     response = run_shell_ls_command(['cmd', '/C', 'echo test'], shell=True,
@@ -266,7 +266,7 @@ def _run_shell_ls_command_one_try(ls_command: List[str],
     >>> assert response.returncode == 0
 
     >>> # test std operation without communication, no_wait; shell=False
-    >>> if lib_platform.is_platform_posix:
+    >>> if lib_platform.get_is_platform_posix():
     ...     response = run_shell_ls_command(['echo', 'test'], shell=False, communicate=False, wait_finish=False)
     ... else:
     ...     response = run_shell_ls_command(['cmd', '/C', 'echo test'], shell=False,
@@ -346,7 +346,7 @@ def _run_shell_ls_command_one_try(ls_command: List[str],
 
 def get_startup_info(start_new_session: bool):    # type: ignore  # is subprocess.STARTUPINFO - only available on windows !
     """
-    >>> if lib_platform.is_platform_windows:
+    >>> if lib_platform.get_is_platform_windows():
     ...     result = get_startup_info(start_new_session=False)
     ...     assert result.dwFlags == 1
     ...     assert type(result) == subprocess.STARTUPINFO
@@ -354,14 +354,14 @@ def get_startup_info(start_new_session: bool):    # type: ignore  # is subproces
     ...     assert type(result) == subprocess.STARTUPINFO
     ...     assert result.dwFlags == 521
 
-    >>> if lib_platform.is_platform_posix:
+    >>> if lib_platform.get_is_platform_posix():
     ...     result = get_startup_info(start_new_session=False)
     ...     assert result is None
     ...     result = get_startup_info(start_new_session=True)
     ...     assert result is None
 
     """
-    if lib_platform.is_platform_windows:
+    if lib_platform.get_is_platform_windows():
         startupinfo = subprocess.STARTUPINFO()                  # type: ignore
         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW  # type: ignore    # HIDE CONSOLE
         if start_new_session:
@@ -409,7 +409,7 @@ def prepend_sudo_and_run_as_user(ls_command: List[str], shell: bool, run_as_user
     if use_sudo:
         ls_command = lib_shell_helpers.prepend_sudo_command(l_command=ls_command)
 
-    if shell and lib_platform.is_platform_posix:
+    if shell and lib_platform.get_is_platform_posix():
         ls_command = [' '.join(ls_command)]
 
     return ls_command

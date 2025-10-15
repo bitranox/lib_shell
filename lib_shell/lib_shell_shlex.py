@@ -25,14 +25,14 @@ def shlex_split_multi_platform(s_commandline: str, is_platform_windows: Optional
     >>> shlex_split_multi_platform('c:/test.exe /n /r \\t \\e[0m /s=""test" ,', is_platform_windows=True)
     ['c:/test.exe', '/n', '/r', '\\\\e[0m', '/s=test ,']
     >>> shlex_split_multi_platform('c:/test.exe /n /r \\t \\e[0m /s=""test" ,',
-    ...     is_platform_windows=False)  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    ...     is_platform_windows=False)
     Traceback (most recent call last):
         ...
     ValueError: invalid or incomplete shell string
 
     """
     is_platform_windows = lib_parameter.get_default_if_none(
-        is_platform_windows, default=lib_platform.is_platform_windows)  # type: ignore
+        is_platform_windows, default=lib_platform.get_is_platform_windows())  # type: ignore
 
     if is_platform_windows:
         re_cmd_lex_precompiled = _re_cmd_lex_precompiled_win
@@ -57,7 +57,7 @@ def shlex_split_multi_platform(s_commandline: str, is_platform_windows: Optional
             raise ValueError("invalid or incomplete shell string")
         elif qs:
             word = qs.replace('\\"', '"').replace('\\\\', '\\')
-            if lib_platform.is_platform_windows:
+            if lib_platform.get_is_platform_windows():
                 word = word.replace('""', '"')
         else:
             word = qss   # may be even empty; must be last
