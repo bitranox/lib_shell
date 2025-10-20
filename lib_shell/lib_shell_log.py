@@ -1,11 +1,7 @@
 # stdlib
 import logging
 
-# ENSURE LOGGER - shoud be already initialized by caller
-import lib_log_rich.runtime
-import ensure_richlog
-ensure_richlog.ensure_richlog(service="lib_shell_log", environment="submodule", queue_enabled=True)
-log: lib_log_rich.runtime.LoggerProxy = lib_log_rich.get("lib_shell_log")
+logger = logging.getLogger(__name__)
 
 # OWN
 import btx_lib_list
@@ -95,18 +91,18 @@ def log_results(s_command: str, stdout: str, stderr: str, returncode: int, wait_
     else:
         if wait_finish:
             if returncode:
-                log._log(level=log_level_command, message=f'shell[ERROR#{returncode}]: {s_command}')
+                logger.log(level=log_level_command, msg=f'shell[ERROR#{returncode}]: {s_command}')
             else:
-                log._log(level=log_level_command, message=f'shell[OK]: {s_command}')
+                logger.log(level=log_level_command, msg=f'shell[OK]: {s_command}')
         else:
-            log._log(level=log_level_command, message=f'shell[Fire and Forget]: {s_command}')
+            logger.log(level=log_level_command, msg=f'shell[Fire and Forget]: {s_command}')
 
         if stdout:
             stdout = delete_empty_lines(stdout)
-            log._log(level=log_level_stdout, message=f'shell stdout:\n{stdout}')
+            logger.log(level=log_level_stdout, msg=f'shell stdout:\n{stdout}')
         if stderr:
             stderr = delete_empty_lines(stderr)
-            log._log(level=log_level_stderr, message=f'shell stderr:\n{stderr}')
+            logger.log(level=log_level_stderr, msg=f'shell stderr:\n{stderr}')
 
 
 def delete_empty_lines(text: str) -> str:
