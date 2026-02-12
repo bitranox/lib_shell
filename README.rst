@@ -114,7 +114,6 @@ following modules will be automatically installed :
     git+https://github.com/bitranox/lib_detect_encoding.git
     git+https://github.com/bitranox/btx_lib_list.git
     git+https://github.com/bitranox/lib_log_utils.git
-    git+https://github.com/bitranox/lib_parameter.git
     git+https://github.com/bitranox/lib_regexp.git
 
 Acknowledgements

@@ -1,7 +1,6 @@
 import re
 from typing import List, Optional
 
-import lib_parameter
 import lib_platform
 
 _re_cmd_lex_precompiled_win = re.compile(pattern=r'''"((?:""|\\["\\]|[^"])*)"?()|(\\\\(?=\\*")|\\")|(&&?|\|\|?|\d?>|[<])|([^\s"&|<>]+)|(\s+)|(.)''', flags=0)
@@ -31,8 +30,7 @@ def shlex_split_multi_platform(s_commandline: str, is_platform_windows: Optional
     ValueError: invalid or incomplete shell string
 
     """
-    is_platform_windows = lib_parameter.get_default_if_none(
-        is_platform_windows, default=lib_platform.get_is_platform_windows())  # type: ignore
+    is_platform_windows = is_platform_windows if is_platform_windows is not None else lib_platform.get_is_platform_windows()  # type: ignore
 
     if is_platform_windows:
         re_cmd_lex_precompiled = _re_cmd_lex_precompiled_win
